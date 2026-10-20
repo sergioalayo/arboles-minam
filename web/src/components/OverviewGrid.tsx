@@ -1,8 +1,8 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef, type MouseEvent } from 'react';
 import { ArrowRight, Filter, Network, Search, SearchX, X } from 'lucide-react';
 import { routeHref } from '@/hooks/useHashRoute';
 import { normalize } from '@/lib/graph';
-import { ORGANOS_CAUSALES, splitMatches, SUMMARIES, type TreeSummary } from '@/lib/overview';
+import { MESAS, ORGANOS_CAUSALES, splitMatches, summaryMatches, type MesaGroup, type SubEje } from '@/lib/overview';
 import { organoBadge, organoTooltip } from '@/lib/theme';
 import { cn, plural } from '@/lib/utils';
 
@@ -39,106 +39,223 @@ function Highlighted({ text, query }: { text: string; query: string }) {
   );
 }
 
-function Metric({ value, label, detail }: { value: number; label: string; detail: string }) {
+function MetricChip({ value, label, detail }: { value: number; label: string; detail: string }) {
   return (
-    <div className="min-w-0">
-      <div className="text-xl font-semibold tabular-nums leading-none text-slate-900">{value}</div>
-      <div className="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">{label}</div>
-      <div className="text-[11px] text-slate-400">{detail}</div>
+    <div className="min-w-0 rounded-md bg-white px-2.5 py-1.5 ring-1 ring-slate-200">
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-lg font-bold tabular-nums leading-none text-slate-900">{value}</span>
+        <span className="text-xs font-semibold text-slate-600">{label}</span>
+      </div>
+      <div className="mt-0.5 truncate text-[11px] text-slate-400">{detail}</div>
+    </div>
+  );
+}
+
+const openOnPlainClick = (onOpen: () => void) => (e: MouseEvent<HTMLAnchorElement>) => {
+  // Clic normal: se prepara el árbol antes de cambiar de vista. Ctrl/Cmd/clic medio: pestaña nueva.
+  if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) onOpen();
+};
+
+const CARD =
+  'flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl motion-reduce:transition-none motion-reduce:hover:translate-y-0';
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2';
+const BUTTON =
+  'inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-colors';
+const MICRO_LABEL = 'text-[10px] font-bold uppercase tracking-wider text-slate-500';
+
+function ProblemText({ text, query }: { text: string; query: string }) {
+  return (
+    <>
+      <div className={MICRO_LABEL}>Problema público central</div>
+      <p className="mt-1.5 text-sm font-normal leading-relaxed text-slate-700">
+        <Highlighted text={text} query={query} />
+      </p>
+    </>
+  );
+}
+
+/** Eje problemático de una mesa consolidada; se atenúa si no coincide con los filtros activos. */
+function SubEjeBlock({ sub, query, dimmed }: { sub: SubEje; query: string; dimmed: boolean }) {
+  const { summary, letra, nombre } = sub;
+  return (
+    <div
+      className={cn(
+        'rounded-lg border border-slate-200/80 bg-slate-50 p-3.5 transition-opacity',
+        dimmed && 'opacity-45',
+      )}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="flex size-5 shrink-0 items-center justify-center rounded bg-emerald-900 text-[10px] font-bold text-white">
+            {letra}
+          </span>
+          <span className="truncate text-xs font-bold uppercase tracking-wider text-slate-800">
+            Sub-eje {letra} · <Highlighted text={nombre} query={query} />
+          </span>
+        </div>
+        <span className="shrink-0 text-[11px] tabular-nums text-slate-500">
+          {plural(summary.causas, 'causa')} · {plural(summary.efectos, 'efecto')}
+        </span>
+      </div>
+      <ProblemText text={summary.tree.problemaCentral} query={query} />
     </div>
   );
 }
 
 interface MesaCardProps {
-  summary: TreeSummary;
+  group: MesaGroup;
   query: string;
   organo: string | null;
-  onOpen: () => void;
+  onOpenTree: (treeId: string) => void;
 }
 
-function MesaCard({ summary, query, organo, onOpen }: MesaCardProps) {
-  const { tree, mesaLabel, causas, causasDirectas, efectos, efectosDirectos, organos, causasTransversales } = summary;
+function MesaCard({ group, query, organo, onOpenTree }: MesaCardProps) {
+  const { mesaLabel, eje, subEjes, summaries, causas, causasDirectas, efectos, efectosDirectos, organos, causasTransversales } =
+    group;
+  const single = subEjes.length === 0 ? summaries[0] : undefined;
+  const q = normalize(query.trim());
+  const filtering = q.length >= 2 || organo !== null;
   // Con filtro de órgano activo, ese órgano encabeza los badges aunque no esté entre los principales.
   const ordered = organo ? [...organos.filter(([o]) => o === organo), ...organos.filter(([o]) => o !== organo)] : organos;
   const shown = ordered.slice(0, MAX_ORGANO_BADGES);
   const hidden = ordered.slice(MAX_ORGANO_BADGES);
+  const nodos = summaries.reduce((a, s) => a + s.tree.nodes.length, 0);
 
-  return (
-    <a
-      href={routeHref({ view: 'tree', treeId: tree.id })}
-      onClick={(e) => {
-        // Clic normal: se prepara el árbol antes de cambiar de vista. Ctrl/Cmd/clic medio: pestaña nueva.
-        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) onOpen();
-      }}
-      title={tree.descripcionGeneral}
-      className="group flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-    >
-      <div className="flex flex-1 flex-col gap-3 p-5">
+  const body = (
+    <>
+      <div className="flex flex-1 flex-col gap-4 p-5">
         <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center rounded-md bg-slate-900 px-2 py-1 text-xs font-bold tracking-wide text-amber-300 tabular-nums">
+          <span className="inline-flex items-center rounded-md bg-slate-900 px-2.5 py-1 font-mono text-xs font-semibold tracking-wide text-white tabular-nums shadow-sm">
             {mesaLabel}
           </span>
-          <span className="text-[11px] text-slate-400">{plural(tree.nodes.length, 'nodo')}</span>
+          <span className="text-[11px] text-slate-400">
+            {subEjes.length > 0 && `${subEjes.length} ejes problemáticos · `}
+            {plural(nodos, 'nodo')}
+          </span>
         </div>
-        <h2 className="text-base font-semibold leading-snug text-slate-900">
-          <Highlighted text={tree.eje} query={query} />
+        <h2 className="flex min-h-[2lh] items-center border-l-4 border-emerald-700 pl-3 text-lg font-bold leading-snug tracking-tight text-slate-900">
+          <span>
+            <Highlighted text={eje} query={query} />
+          </span>
         </h2>
-        <div className="flex-1 border-l-2 border-amber-400 pl-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Problema central</div>
-          <p className="mt-1 text-sm leading-relaxed text-slate-700">
-            <Highlighted text={tree.problemaCentral} query={query} />
-          </p>
+        <div className="flex flex-1 flex-col gap-2.5">
+          {single ? (
+            <div className="flex-1 rounded-lg border border-slate-200/80 bg-slate-50 p-3.5">
+              <ProblemText text={single.tree.problemaCentral} query={query} />
+            </div>
+          ) : (
+            subEjes.map((sub) => (
+              <SubEjeBlock
+                key={sub.summary.tree.id}
+                sub={sub}
+                query={query}
+                dimmed={filtering && !summaryMatches(sub.summary, q, organo)}
+              />
+            ))
+          )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4">
-        <div className="grid grid-cols-2 gap-3">
-          <Metric value={causas} label="Causas" detail={`${causasDirectas} directas · ${causas - causasDirectas} indirectas`} />
-          <Metric value={efectos} label="Efectos" detail={`${efectosDirectos} directos · ${efectos - efectosDirectos} indirectos`} />
+      <div className="flex flex-col gap-3.5 border-t border-slate-100 bg-slate-50/70 px-5 py-4">
+        <div className="grid grid-cols-2 gap-2" aria-label="Métricas del árbol de problemas">
+          <MetricChip
+            value={causas}
+            label={causas === 1 ? 'causa' : 'causas'}
+            detail={`${causasDirectas} directas · ${causas - causasDirectas} indirectas`}
+          />
+          <MetricChip
+            value={efectos}
+            label={efectos === 1 ? 'efecto' : 'efectos'}
+            detail={`${efectosDirectos} directos · ${efectos - efectosDirectos} indirectos`}
+          />
         </div>
-        <div className="flex flex-wrap items-center gap-1.5" aria-label="Órganos con participación causal">
-          {shown.map(([o, n]) => (
-            <span
-              key={o}
-              title={`${organoTooltip(o)} · ${plural(n, 'causa')}`}
-              className={cn(
-                'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                organoBadge(o),
-                organo === o && 'ring-2 ring-slate-900 ring-offset-1',
-              )}
-            >
-              {o} <span className="font-normal opacity-70">{n}</span>
-            </span>
-          ))}
-          {hidden.length > 0 && (
-            <span
-              title={hidden.map(([o, n]) => `${o} (${n})`).join(', ')}
-              className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200"
-            >
-              +{hidden.length}
-            </span>
-          )}
-          {causasTransversales > 0 && (
-            <span
-              title={`${plural(causasTransversales, 'causa')} de diseño sectorial general o multi-entidad`}
-              className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600"
-            >
-              Transversal <span className="opacity-70">{causasTransversales}</span>
-            </span>
-          )}
+        <div>
+          <div className={cn(MICRO_LABEL, 'mb-1.5 text-slate-400')}>Órganos involucrados</div>
+          <div className="flex flex-wrap items-center gap-1.5" aria-label="Órganos con participación causal">
+            {shown.map(([o, n]) => (
+              <span
+                key={o}
+                title={`${organoTooltip(o)} · ${plural(n, 'causa')}`}
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                  organoBadge(o),
+                  organo === o && 'ring-2 ring-slate-900 ring-offset-1',
+                )}
+              >
+                {o} <span className="font-normal opacity-70">{n}</span>
+              </span>
+            ))}
+            {hidden.length > 0 && (
+              <span
+                title={hidden.map(([o, n]) => `${o} (${n})`).join(', ')}
+                className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200"
+              >
+                +{hidden.length}
+              </span>
+            )}
+            {causasTransversales > 0 && (
+              <span
+                title={`${plural(causasTransversales, 'causa')} de diseño sectorial general o multi-entidad`}
+                className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600"
+              >
+                Transversal <span className="opacity-70">{causasTransversales}</span>
+              </span>
+            )}
+          </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 transition-colors group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white">
-          Explorar Árbol Causal
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-        </span>
+        {single ? (
+          <span
+            className={cn(
+              BUTTON,
+              'self-start group-hover:border-emerald-900 group-hover:bg-emerald-900 group-hover:text-white',
+            )}
+          >
+            Explorar Árbol Causal
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+          </span>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {subEjes.map(({ summary, nombre }) => (
+              <a
+                key={summary.tree.id}
+                href={routeHref({ view: 'tree', treeId: summary.tree.id })}
+                onClick={openOnPlainClick(() => onOpenTree(summary.tree.id))}
+                title={summary.tree.descripcionGeneral}
+                className={cn(
+                  BUTTON,
+                  FOCUS,
+                  'group/btn justify-between hover:border-emerald-900 hover:bg-emerald-900 hover:text-white',
+                )}
+              >
+                <span className="truncate">
+                  Explorar {nombre} <span className="font-mono font-medium opacity-60">({summary.tree.mesa})</span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 transition-transform group-hover/btn:translate-x-0.5" aria-hidden />
+              </a>
+            ))}
+          </div>
+        )}
       </div>
+    </>
+  );
+
+  // Mesa consolidada: la tarjeta no es un enlace (no se anidan <a>); cada sub-eje abre su propio árbol.
+  if (!single) return <article className={CARD}>{body}</article>;
+  return (
+    <a
+      href={routeHref({ view: 'tree', treeId: single.tree.id })}
+      onClick={openOnPlainClick(() => onOpenTree(single.tree.id))}
+      title={single.tree.descripcionGeneral}
+      className={cn(CARD, FOCUS, 'group')}
+    >
+      {body}
     </a>
   );
 }
 
 const TOTALS = {
-  causas: SUMMARIES.reduce((a, s) => a + s.causas, 0),
-  efectos: SUMMARIES.reduce((a, s) => a + s.efectos, 0),
+  causas: MESAS.reduce((a, g) => a + g.causas, 0),
+  efectos: MESAS.reduce((a, g) => a + g.efectos, 0),
 };
 
 /** Vista Panorámica Ejecutiva: punto de entrada con las mesas temáticas y sus problemas centrales. */
@@ -157,9 +274,7 @@ export function OverviewGrid({ filters, onFiltersChange, onOpenTree }: OverviewG
 
   const visible = useMemo(() => {
     const q = normalize(query.trim());
-    return SUMMARIES.filter(
-      (s) => (q.length < 2 || s.searchText.includes(q)) && (organo === null || s.organos.some(([o]) => o === organo)),
-    );
+    return MESAS.filter((g) => g.summaries.some((s) => summaryMatches(s, q, organo)));
   }, [query, organo]);
 
   const hasFilters = query.trim() !== '' || organo !== null;
@@ -184,7 +299,7 @@ export function OverviewGrid({ filters, onFiltersChange, onOpenTree }: OverviewG
           </div>
           <dl className="grid grid-cols-3 gap-6 lg:gap-10">
             {[
-              [SUMMARIES.length, 'Mesas'],
+              [MESAS.length, 'Mesas'],
               [TOTALS.causas, 'Causas'],
               [TOTALS.efectos, 'Efectos'],
             ].map(([value, label]) => (
@@ -250,7 +365,7 @@ export function OverviewGrid({ filters, onFiltersChange, onOpenTree }: OverviewG
             ))}
           </div>
           <p className="shrink-0 text-xs text-slate-500" aria-live="polite">
-            {visible.length === SUMMARIES.length ? `${SUMMARIES.length} mesas` : `${visible.length} de ${SUMMARIES.length} mesas`}
+            {visible.length === MESAS.length ? `${MESAS.length} mesas` : `${visible.length} de ${MESAS.length} mesas`}
           </p>
         </div>
       </div>
@@ -258,8 +373,8 @@ export function OverviewGrid({ filters, onFiltersChange, onOpenTree }: OverviewG
       <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
         {visible.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {visible.map((s) => (
-              <MesaCard key={s.tree.id} summary={s} query={query} organo={organo} onOpen={() => onOpenTree(s.tree.id)} />
+            {visible.map((g) => (
+              <MesaCard key={g.mesa} group={g} query={query} organo={organo} onOpenTree={onOpenTree} />
             ))}
           </div>
         ) : (
