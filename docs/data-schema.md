@@ -38,6 +38,7 @@ export interface NodeMetadata {
   severidad: Severidad;
   severidad_manual: boolean;  // true = severidad corregida a mano; la re-extracción no la sobreescribe
   fuente: string;             // Archivo de origen y sección/slide
+  textoOriginal?: string;     // Solo problema_central: texto literal del documento si difiere de la redacción oficial
   isCollapsed?: boolean;
 }
 
@@ -50,6 +51,9 @@ export interface EdgeMetadata {
 
 export interface ProblemTree {
   id: string;
+  mesa: string;               // Número oficial de mesa temática ("1" … "10", "11.1", "11.2")
+  eje: string;                // Eje temático oficial de la mesa (docs/business-rules.md §3)
+  problemaCentral: string;    // Redacción oficial del problema central (Vista Panorámica)
   titulo: string;
   descripcionGeneral: string;
   archivoOrigen: string;

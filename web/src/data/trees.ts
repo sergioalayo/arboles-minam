@@ -21,7 +21,14 @@ function parseRootData(value: unknown): RootData {
     throw new Error('arboles.json: se esperaba { arboles: ProblemTree[] }');
   }
   for (const tree of value.arboles as unknown[]) {
-    if (!isObject(tree) || !Array.isArray(tree.nodes) || !Array.isArray(tree.edges)) {
+    if (
+      !isObject(tree) ||
+      !Array.isArray(tree.nodes) ||
+      !Array.isArray(tree.edges) ||
+      typeof tree.mesa !== 'string' ||
+      typeof tree.eje !== 'string' ||
+      typeof tree.problemaCentral !== 'string'
+    ) {
       throw new Error('arboles.json: árbol con estructura inválida');
     }
     for (const n of tree.nodes as unknown[]) {

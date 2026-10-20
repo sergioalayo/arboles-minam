@@ -28,3 +28,25 @@ Durante la extracción en Python, clasificar las entidades detectadas bajo estas
   - `INAIGEM`: Instituto Nacional de Investigación en Glaciares y Ecosistemas de Montaña.
   - `SENACE`: Servicio Nacional de Certificación Ambiental para las Inversiones Sostenibles.
 - **Clasificación por Defecto:** Si una causa compromete a múltiples entidades o al diseño sectorial general, asignar: `Transversal / Sectorial`.
+
+## 3. Mesas Temáticas Oficiales
+Metadata de la Vista Panorámica Ejecutiva. Fuente única: `MESAS` en `scripts/extract_trees.py`, que la
+emite en `data/arboles.json` como `mesa`, `eje` y `problemaCentral` de cada árbol. La redacción oficial del
+problema central se usa en la Vista Panorámica y en el nodo `problema_central` (`label` y `description`);
+si el documento de origen difiere, su texto literal se conserva en `textoOriginal` y se muestra en la
+sección de Trazabilidad del Drawer.
+
+| Mesa | Eje temático |
+| :--- | :--- |
+| 1 | Gobernanza ambiental, marcos normativos y descentralización |
+| 2 | Servicios al ciudadano y simplificación administrativa |
+| 3 | Ciencia, información ambiental y gestión del riesgo |
+| 4 | Cierre de brechas sectoriales |
+| 5 | Gestión integrada de programas, proyectos e intervenciones |
+| 6 | Modernización de tecnologías de información |
+| 7 | Optimización del proceso de certificación ambiental |
+| 8 | Optimización presupuestal y financiera |
+| 9 | Trabajo articulado contra economías ilegales |
+| 10 | Optimización de la fiscalización ambiental |
+| 11.1 | Recursos humanos e integridad (Integridad) |
+| 11.2 | Recursos humanos e integridad (Talento Humano) |

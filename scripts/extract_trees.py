@@ -42,20 +42,60 @@ CM = 360000  # EMU por centímetro
 TOUCH = 0.22 * CM
 ROW_TOL = 0.5 * CM
 
-# Metadatos por mesa: tema (eje del problema central) y órgano por defecto.
+# Metadatos por mesa: tema (eje del problema central), órgano por defecto y metadata oficial de la
+# Vista Panorámica (docs/business-rules.md §3): número de mesa, eje temático y problema central.
 MESAS: dict[str, dict[str, str]] = {
-    '1': {'tema': 'Gobernanza ambiental', 'organo': TRANSVERSAL},
-    '2': {'tema': 'Simplificación administrativa', 'organo': 'SG'},
-    '3': {'tema': 'Ciencia e información ambiental', 'organo': TRANSVERSAL},
-    '4': {'tema': 'Brechas sectoriales', 'organo': 'OGPP'},
-    '5': {'tema': 'Programas, proyectos especiales y GICA', 'organo': TRANSVERSAL},
-    '6': {'tema': 'Modernización de TI', 'organo': 'SG'},
-    '7': {'tema': 'Certificación ambiental', 'organo': 'SENACE'},
-    '8': {'tema': 'Optimización presupuestal y financiera', 'organo': 'OGPP'},
-    '9': {'tema': 'Economías ilegales', 'organo': TRANSVERSAL},
-    '10': {'tema': 'Fiscalización ambiental', 'organo': 'OEFA'},
-    '11 OII': {'tema': 'Integridad pública', 'organo': 'SG'},
-    '11 RRHH': {'tema': 'Gestión de recursos humanos', 'organo': 'SG'},
+    '1': {'tema': 'Gobernanza ambiental', 'organo': TRANSVERSAL, 'mesa': '1',
+          'eje': 'Gobernanza ambiental, marcos normativos y descentralización',
+          'problema': 'Limitada capacidad del sector ambiental para conducir la gestión ambiental en los tres '
+                      'niveles de gobierno de manera planificada, preventiva, articulada, predecible y '
+                      'orientada a resultados'},
+    '2': {'tema': 'Simplificación administrativa', 'organo': 'SG', 'mesa': '2',
+          'eje': 'Servicios al ciudadano y simplificación administrativa',
+          'problema': 'Deficiencias en la prestación y simplificación de los servicios públicos del Sector '
+                      'Ambiental'},
+    '3': {'tema': 'Ciencia e información ambiental', 'organo': TRANSVERSAL, 'mesa': '3',
+          'eje': 'Ciencia, información ambiental y gestión del riesgo',
+          'problema': 'Limitada articulación y aprovechamiento de las capacidades técnico-científicas, '
+                      'tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas '
+                      'y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres'},
+    '4': {'tema': 'Brechas sectoriales', 'organo': 'OGPP', 'mesa': '4',
+          'eje': 'Cierre de brechas sectoriales',
+          'problema': 'Débil asociación entre los servicios vinculados a las brechas del sector Ambiente y '
+                      'los beneficios a la población'},
+    '5': {'tema': 'Programas, proyectos especiales y GICA', 'organo': TRANSVERSAL, 'mesa': '5',
+          'eje': 'Gestión integrada de programas, proyectos e intervenciones',
+          'problema': 'Limitada capacidad de las unidades ejecutoras y programas del MINAM para ejecutar sus '
+                      'intervenciones'},
+    '6': {'tema': 'Modernización de TI', 'organo': 'SG', 'mesa': '6',
+          'eje': 'Modernización de tecnologías de información',
+          'problema': 'Los usuarios reciben un servicio de información para la gestión ambiental fragmentado, '
+                      'no interoperable, de acceso limitado, inseguro y de escasa utilidad para la toma de '
+                      'decisiones ambientales a nivel nacional, en el marco del SNGA'},
+    '7': {'tema': 'Certificación ambiental', 'organo': 'SENACE', 'mesa': '7',
+          'eje': 'Optimización del proceso de certificación ambiental',
+          'problema': 'Limitada predictibilidad, calidad, y oportunidad en el proceso de certificación '
+                      'ambiental'},
+    '8': {'tema': 'Optimización presupuestal y financiera', 'organo': 'OGPP', 'mesa': '8',
+          'eje': 'Optimización presupuestal y financiera',
+          'problema': 'Limitada disponibilidad y eficiencia en el uso de recursos del sector ambiente'},
+    '9': {'tema': 'Economías ilegales', 'organo': TRANSVERSAL, 'mesa': '9',
+          'eje': 'Trabajo articulado contra economías ilegales',
+          'problema': 'Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas en '
+                      'las ANP y otros ecosistemas'},
+    '10': {'tema': 'Fiscalización ambiental', 'organo': 'OEFA', 'mesa': '10',
+           'eje': 'Optimización de la fiscalización ambiental',
+           'problema': 'Brechas en las capacidades del OEFA, como fiscalizador directo y ente rector del '
+                       'SINEFA, para prevenir los incumplimientos ambientales de mayor riesgo y lograr el '
+                       'cumplimiento regulatorio y el cambio de conducta de los administrados'},
+    '11 OII': {'tema': 'Integridad pública', 'organo': 'SG', 'mesa': '11.1',
+               'eje': 'Recursos humanos e integridad (Integridad)',
+               'problema': 'Limitada efectividad y sostenibilidad de la implementación del Modelo de Integridad '
+                           'en los procesos estratégicos, misionales y de apoyo de las entidades del Sector'},
+    '11 RRHH': {'tema': 'Gestión de recursos humanos', 'organo': 'SG', 'mesa': '11.2',
+                'eje': 'Recursos humanos e integridad (Talento Humano)',
+                'problema': 'Limitadas condiciones para el desarrollo de talento humano en el MINAM y sus '
+                            'organismos adscritos'},
 }
 
 NOISE = re.compile(r'^(?:[ÁA]RBOL DE PROBLEMA|MESA DE TRABAJO|Nota:)', re.IGNORECASE)
@@ -485,6 +525,12 @@ def build_tree(key: str, src: Path, raw: list[RawNode], central: RawNode, level:
         ev = extract_evidencia(text, node_notes)
         if ev:
             node['evidencia'] = ev
+        if ntype == 'problema_central':
+            # Redacción oficial de la mesa; el texto del documento se conserva si difiere (trazabilidad).
+            node['label'] = make_label(meta['problema'])
+            node['description'] = meta['problema']
+            if re.sub(r'\s+', ' ', text).strip().rstrip('.') != meta['problema']:
+                node['textoOriginal'] = text
         node['_method'] = n.method
         out_nodes.append(node)
     assign_severity(out_nodes, descendants)
@@ -504,10 +550,13 @@ def build_tree(key: str, src: Path, raw: list[RawNode], central: RawNode, level:
     titulo_mesa = f'Mesa {key.split()[0]}' + (f' · {key.split()[1]}' if ' ' in key else '')
     return {
         'id': prefix,
+        'mesa': meta['mesa'],
+        'eje': meta['eje'],
+        'problemaCentral': meta['problema'],
         'titulo': f'{titulo_mesa} — {meta["tema"]}',
         'descripcionGeneral': (
             f'Árbol de problemas de la {titulo_mesa} ({meta["tema"]}). Problema central: '
-            f'«{central.text.rstrip(".")}». Identifica {counts["causa_directa"]} causas directas, '
+            f'«{meta["problema"]}». Identifica {counts["causa_directa"]} causas directas, '
             f'{counts["causa_indirecta"]} causas indirectas, {counts["efecto_directo"]} efectos directos y '
             f'{counts["efecto_indirecto"]} efectos indirectos.'),
         'archivoOrigen': unicodedata.normalize('NFC', src.name),
@@ -599,7 +648,9 @@ def preserve_manual_severity(trees: list[dict], previous_path: Path) -> list[str
                 continue
             match = None
             if tree:
-                match = next((n for n in tree['nodes'] if n['description'] == pn['description']), None)
+                texts = {pn['description'], pn.get('textoOriginal')} - {None}
+                match = next((n for n in tree['nodes']
+                              if texts & {n['description'], n.get('textoOriginal')}), None)
             if match is None:
                 warnings.append(f'{pt["id"]}/{pn["id"]}: severidad manual sin nodo equivalente '
                                 f'(«{pn["label"]}»); revise la corrección')

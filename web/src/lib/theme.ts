@@ -46,12 +46,14 @@ const ORGANO_BADGE: Record<string, string> = {
   SENACE: 'bg-amber-100 text-amber-900',
 };
 
+export const TRANSVERSAL = 'Transversal / Sectorial';
+
 export function organoBadge(organo: string): string {
   return ORGANO_BADGE[organo] ?? 'bg-stone-100 text-stone-700';
 }
 
 export function organoShort(organo: string): string {
-  return organo === 'Transversal / Sectorial' ? 'Transversal' : organo;
+  return organo === TRANSVERSAL ? 'Transversal' : organo;
 }
 
 /** Nombre completo para tooltips: «DGCCA — Dirección General de … (VMDERN)». */
@@ -59,5 +61,5 @@ export function organoTooltip(organo: string): string {
   const info = ORGANOS[organo];
   if (!info) return organo;
   const dep = info.dependencia ? ` · ${info.dependencia}` : '';
-  return organo === 'Transversal / Sectorial' ? `${organo}: ${info.nombre}` : `${organo} — ${info.nombre}${dep}`;
+  return organo === TRANSVERSAL ? `${organo}: ${info.nombre}` : `${organo} — ${info.nombre}${dep}`;
 }

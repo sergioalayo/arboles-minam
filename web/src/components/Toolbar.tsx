@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import {
+  ArrowLeft,
   ChevronDown,
   ChevronsDownUp,
   ChevronsUpDown,
@@ -62,10 +63,12 @@ function countBy<T>(items: readonly T[], key: (t: T) => string): [string, number
 interface ToolbarProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
+  /** Regresa a la Vista Panorámica de todas las mesas. */
+  onBack: () => void;
 }
 
 /** Barra superior flotante: selector de árbol, buscador, filtros rápidos y acciones de vista. */
-export function Toolbar({ searchQuery, onSearchChange }: ToolbarProps) {
+export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
   const { index, treeId, organoFilter, ejeFilter, visible, selectedId } = useTreeView();
   const actions = useTreeActions();
   const { getNodes, getNodesBounds } = useReactFlow();
@@ -114,9 +117,17 @@ export function Toolbar({ searchQuery, onSearchChange }: ToolbarProps) {
       <div className="@container pointer-events-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <span className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-amber-300 sm:flex" aria-hidden>
-            <Network className="size-5" />
-          </span>
+          <button
+            type="button"
+            onClick={onBack}
+            title="Volver a la Vista Panorámica de todas las mesas"
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          >
+            <ArrowLeft className="size-4" aria-hidden />
+            <span className="hidden @[960px]:inline">Volver a Vista Panorámica</span>
+            <span className="sr-only @[960px]:hidden">Volver a Vista Panorámica</span>
+            <Network className="size-4 text-amber-300 @[960px]:hidden" aria-hidden />
+          </button>
           <label className="relative min-w-0 flex-1 sm:max-w-md">
             <span className="sr-only">Seleccionar árbol de problemas</span>
             <select

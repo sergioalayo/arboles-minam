@@ -2,6 +2,9 @@
   "arboles": [
     {
       "id": "m1",
+      "mesa": "1",
+      "eje": "Gobernanza ambiental, marcos normativos y descentralización",
+      "problemaCentral": "Limitada capacidad del sector ambiental para conducir la gestión ambiental en los tres niveles de gobierno de manera planificada, preventiva, articulada, predecible y orientada a resultados",
       "titulo": "Mesa 1 — Gobernanza ambiental",
       "descripcionGeneral": "Árbol de problemas de la Mesa 1 (Gobernanza ambiental). Problema central: «Limitada capacidad del sector ambiental para conducir la gestión ambiental en los tres niveles de gobierno de manera planificada, preventiva, articulada, predecible y orientada a resultados». Identifica 5 causas directas, 18 causas indirectas, 4 efectos directos y 4 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 1 Gobernanza.doc",
@@ -575,6 +578,9 @@
     },
     {
       "id": "m2",
+      "mesa": "2",
+      "eje": "Servicios al ciudadano y simplificación administrativa",
+      "problemaCentral": "Deficiencias en la prestación y simplificación de los servicios públicos del Sector Ambiental",
       "titulo": "Mesa 2 — Simplificación administrativa",
       "descripcionGeneral": "Árbol de problemas de la Mesa 2 (Simplificación administrativa). Problema central: «Deficiencias en la prestación y simplificación de los servicios públicos del Sector Ambiental». Identifica 3 causas directas, 10 causas indirectas, 4 efectos directos y 6 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 2 - Simplificación.pptx",
@@ -1004,8 +1010,11 @@
     },
     {
       "id": "m3",
+      "mesa": "3",
+      "eje": "Ciencia, información ambiental y gestión del riesgo",
+      "problemaCentral": "Limitada articulación y aprovechamiento de las capacidades técnico-científicas, tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres",
       "titulo": "Mesa 3 — Ciencia e información ambiental",
-      "descripcionGeneral": "Árbol de problemas de la Mesa 3 (Ciencia e información ambiental). Problema central: «Limitada articulación y aprovechamiento de las capacidades técnico científicas, tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres». Identifica 3 causas directas, 13 causas indirectas, 3 efectos directos y 8 efectos indirectos.",
+      "descripcionGeneral": "Árbol de problemas de la Mesa 3 (Ciencia e información ambiental). Problema central: «Limitada articulación y aprovechamiento de las capacidades técnico-científicas, tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres». Identifica 3 causas directas, 13 causas indirectas, 3 efectos directos y 8 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 3 - Ciencia Información Ambiental.pptx",
       "problemaCentralId": "m3-pc",
       "nodes": [
@@ -1149,13 +1158,14 @@
           "id": "m3-pc",
           "type": "problema_central",
           "level": 0,
-          "label": "Limitada articulación y aprovechamiento de las capacidades técnico científicas…",
-          "description": "Limitada articulación y aprovechamiento de las capacidades técnico científicas, tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres.",
+          "label": "Limitada articulación y aprovechamiento de las capacidades técnico-científicas…",
+          "description": "Limitada articulación y aprovechamiento de las capacidades técnico-científicas, tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres",
           "organo": "Transversal / Sectorial",
           "ejeTematico": "Ciencia e información ambiental",
           "severidad": "critica",
           "severidad_manual": false,
-          "fuente": "Árbol Mesa 3 - Ciencia Información Ambiental.pptx · diapositiva 1 · PROBLEMA CENTRAL"
+          "fuente": "Árbol Mesa 3 - Ciencia Información Ambiental.pptx · diapositiva 1 · PROBLEMA CENTRAL",
+          "textoOriginal": "Limitada articulación y aprovechamiento de las capacidades técnico científicas, tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres."
         },
         {
           "id": "m3-c1",
@@ -1494,6 +1504,9 @@
     },
     {
       "id": "m4",
+      "mesa": "4",
+      "eje": "Cierre de brechas sectoriales",
+      "problemaCentral": "Débil asociación entre los servicios vinculados a las brechas del sector Ambiente y los beneficios a la población",
       "titulo": "Mesa 4 — Brechas sectoriales",
       "descripcionGeneral": "Árbol de problemas de la Mesa 4 (Brechas sectoriales). Problema central: «Débil asociación entre los servicios vinculados a las brechas del sector Ambiente y los beneficios a la población». Identifica 2 causas directas, 10 causas indirectas, 2 efectos directos y 5 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 4 - Brechas Sectoriales.docx",
@@ -1855,6 +1868,9 @@
     },
     {
       "id": "m5",
+      "mesa": "5",
+      "eje": "Gestión integrada de programas, proyectos e intervenciones",
+      "problemaCentral": "Limitada capacidad de las unidades ejecutoras y programas del MINAM para ejecutar sus intervenciones",
       "titulo": "Mesa 5 — Programas, proyectos especiales y GICA",
       "descripcionGeneral": "Árbol de problemas de la Mesa 5 (Programas, proyectos especiales y GICA). Problema central: «Limitada capacidad de las unidades ejecutoras y programas del MINAM para ejecutar sus intervenciones». Identifica 4 causas directas, 14 causas indirectas, 3 efectos directos y 3 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 5 - Programas. Proyecto Especial y GICA.pptx",
@@ -2300,6 +2316,9 @@
     },
     {
       "id": "m6",
+      "mesa": "6",
+      "eje": "Modernización de tecnologías de información",
+      "problemaCentral": "Los usuarios reciben un servicio de información para la gestión ambiental fragmentado, no interoperable, de acceso limitado, inseguro y de escasa utilidad para la toma de decisiones ambientales a nivel nacional, en el marco del SNGA",
       "titulo": "Mesa 6 — Modernización de TI",
       "descripcionGeneral": "Árbol de problemas de la Mesa 6 (Modernización de TI). Problema central: «Los usuarios reciben un servicio de información para la gestión ambiental fragmentado, no interoperable, de acceso limitado, inseguro y de escasa utilidad para la toma de decisiones ambientales a nivel nacional, en el marco del SNGA». Identifica 2 causas directas, 10 causas indirectas, 4 efectos directos y 6 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 6 - Modernización TI.docx",
@@ -2734,8 +2753,11 @@
     },
     {
       "id": "m7",
+      "mesa": "7",
+      "eje": "Optimización del proceso de certificación ambiental",
+      "problemaCentral": "Limitada predictibilidad, calidad, y oportunidad en el proceso de certificación ambiental",
       "titulo": "Mesa 7 — Certificación ambiental",
-      "descripcionGeneral": "Árbol de problemas de la Mesa 7 (Certificación ambiental). Problema central: «Limitada Predictibilidad, Calidad y Oportunidad en el Proceso de Certificación Ambiental». Identifica 6 causas directas, 19 causas indirectas, 3 efectos directos y 5 efectos indirectos.",
+      "descripcionGeneral": "Árbol de problemas de la Mesa 7 (Certificación ambiental). Problema central: «Limitada predictibilidad, calidad, y oportunidad en el proceso de certificación ambiental». Identifica 6 causas directas, 19 causas indirectas, 3 efectos directos y 5 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 7 Certificación Ambiental.docx",
       "problemaCentralId": "m7-pc",
       "nodes": [
@@ -2840,13 +2862,14 @@
           "id": "m7-pc",
           "type": "problema_central",
           "level": 0,
-          "label": "Limitada Predictibilidad, Calidad y Oportunidad en el Proceso de Certificación…",
-          "description": "Limitada Predictibilidad, Calidad y Oportunidad en el Proceso de Certificación Ambiental",
+          "label": "Limitada predictibilidad, calidad, y oportunidad en el proceso de certificación…",
+          "description": "Limitada predictibilidad, calidad, y oportunidad en el proceso de certificación ambiental",
           "organo": "SENACE",
           "ejeTematico": "Certificación ambiental",
           "severidad": "critica",
           "severidad_manual": false,
-          "fuente": "Árbol Mesa 7 Certificación Ambiental.docx · pág. 1"
+          "fuente": "Árbol Mesa 7 Certificación Ambiental.docx · pág. 1",
+          "textoOriginal": "Limitada Predictibilidad, Calidad y Oportunidad en el Proceso de Certificación Ambiental"
         },
         {
           "id": "m7-c1",
@@ -3324,6 +3347,9 @@
     },
     {
       "id": "m8",
+      "mesa": "8",
+      "eje": "Optimización presupuestal y financiera",
+      "problemaCentral": "Limitada disponibilidad y eficiencia en el uso de recursos del sector ambiente",
       "titulo": "Mesa 8 — Optimización presupuestal y financiera",
       "descripcionGeneral": "Árbol de problemas de la Mesa 8 (Optimización presupuestal y financiera). Problema central: «Limitada disponibilidad y eficiencia en el uso de recursos del sector ambiente». Identifica 2 causas directas, 15 causas indirectas, 1 efectos directos y 3 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 8 - Optimización Presupuestal y Financiera.docx",
@@ -3716,8 +3742,11 @@
     },
     {
       "id": "m9",
+      "mesa": "9",
+      "eje": "Trabajo articulado contra economías ilegales",
+      "problemaCentral": "Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas en las ANP y otros ecosistemas",
       "titulo": "Mesa 9 — Economías ilegales",
-      "descripcionGeneral": "Árbol de problemas de la Mesa 9 (Economías ilegales). Problema central: «Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas en las ANP y otros Ecosistemas». Identifica 4 causas directas, 18 causas indirectas, 3 efectos directos y 2 efectos indirectos.",
+      "descripcionGeneral": "Árbol de problemas de la Mesa 9 (Economías ilegales). Problema central: «Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas en las ANP y otros ecosistemas». Identifica 4 causas directas, 18 causas indirectas, 3 efectos directos y 2 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 9 - Economías Ilegales.docx",
       "problemaCentralId": "m9-pc",
       "nodes": [
@@ -3786,12 +3815,13 @@
           "type": "problema_central",
           "level": 0,
           "label": "Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas…",
-          "description": "Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas en las ANP y otros Ecosistemas",
+          "description": "Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas en las ANP y otros ecosistemas",
           "organo": "Transversal / Sectorial",
           "ejeTematico": "Economías ilegales",
           "severidad": "critica",
           "severidad_manual": false,
-          "fuente": "Árbol Mesa 9 - Economías Ilegales.docx · pág. 1"
+          "fuente": "Árbol Mesa 9 - Economías Ilegales.docx · pág. 1",
+          "textoOriginal": "Limitado abordaje interinstitucional para prevenir y afrontar las economías ilícitas en las ANP y otros Ecosistemas"
         },
         {
           "id": "m9-c1",
@@ -4216,6 +4246,9 @@
     },
     {
       "id": "m10",
+      "mesa": "10",
+      "eje": "Optimización de la fiscalización ambiental",
+      "problemaCentral": "Brechas en las capacidades del OEFA, como fiscalizador directo y ente rector del SINEFA, para prevenir los incumplimientos ambientales de mayor riesgo y lograr el cumplimiento regulatorio y el cambio de conducta de los administrados",
       "titulo": "Mesa 10 — Fiscalización ambiental",
       "descripcionGeneral": "Árbol de problemas de la Mesa 10 (Fiscalización ambiental). Problema central: «Brechas en las capacidades del OEFA, como fiscalizador directo y ente rector del SINEFA, para prevenir los incumplimientos ambientales de mayor riesgo y lograr el cumplimiento regulatorio y el cambio de conducta de los administrados». Identifica 3 causas directas, 18 causas indirectas, 3 efectos directos y 2 efectos indirectos.",
       "archivoOrigen": "Arbol Mesa 10 - Optimización de la Fiscalización Ambiental.docx",
@@ -4702,8 +4735,11 @@
     },
     {
       "id": "m11oii",
+      "mesa": "11.1",
+      "eje": "Recursos humanos e integridad (Integridad)",
+      "problemaCentral": "Limitada efectividad y sostenibilidad de la implementación del Modelo de Integridad en los procesos estratégicos, misionales y de apoyo de las entidades del Sector",
       "titulo": "Mesa 11 · OII — Integridad pública",
-      "descripcionGeneral": "Árbol de problemas de la Mesa 11 · OII (Integridad pública). Problema central: «Limitada efectividad y sostenibilidad de la implementación del Modelo de Integridad en los procesos estratégicos, misionales y de apoyo de las entidades del Sector Ambiental». Identifica 6 causas directas, 16 causas indirectas, 5 efectos directos y 4 efectos indirectos.",
+      "descripcionGeneral": "Árbol de problemas de la Mesa 11 · OII (Integridad pública). Problema central: «Limitada efectividad y sostenibilidad de la implementación del Modelo de Integridad en los procesos estratégicos, misionales y de apoyo de las entidades del Sector». Identifica 6 causas directas, 16 causas indirectas, 5 efectos directos y 4 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 11 OII.docx",
       "problemaCentralId": "m11oii-pc",
       "nodes": [
@@ -4820,12 +4856,13 @@
           "type": "problema_central",
           "level": 0,
           "label": "Limitada efectividad y sostenibilidad de la implementación del Modelo…",
-          "description": "Limitada efectividad y sostenibilidad de la implementación del Modelo de Integridad en los procesos estratégicos, misionales y de apoyo de las entidades del Sector Ambiental",
+          "description": "Limitada efectividad y sostenibilidad de la implementación del Modelo de Integridad en los procesos estratégicos, misionales y de apoyo de las entidades del Sector",
           "organo": "Transversal / Sectorial",
           "ejeTematico": "Integridad pública",
           "severidad": "critica",
           "severidad_manual": false,
-          "fuente": "Árbol Mesa 11 OII.docx · pág. 1"
+          "fuente": "Árbol Mesa 11 OII.docx · pág. 1",
+          "textoOriginal": "Limitada efectividad y sostenibilidad de la implementación del Modelo de Integridad en los procesos estratégicos, misionales y de apoyo de las entidades del Sector Ambiental"
         },
         {
           "id": "m11oii-c1",
@@ -5278,8 +5315,11 @@
     },
     {
       "id": "m11rrhh",
+      "mesa": "11.2",
+      "eje": "Recursos humanos e integridad (Talento Humano)",
+      "problemaCentral": "Limitadas condiciones para el desarrollo de talento humano en el MINAM y sus organismos adscritos",
       "titulo": "Mesa 11 · RRHH — Gestión de recursos humanos",
-      "descripcionGeneral": "Árbol de problemas de la Mesa 11 · RRHH (Gestión de recursos humanos). Problema central: «Limitadas condiciones para el desarrollo del talento humano en el MINAM y sus organismos adscritos». Identifica 6 causas directas, 18 causas indirectas, 3 efectos directos y 3 efectos indirectos.",
+      "descripcionGeneral": "Árbol de problemas de la Mesa 11 · RRHH (Gestión de recursos humanos). Problema central: «Limitadas condiciones para el desarrollo de talento humano en el MINAM y sus organismos adscritos». Identifica 6 causas directas, 18 causas indirectas, 3 efectos directos y 3 efectos indirectos.",
       "archivoOrigen": "Árbol Mesa 11 RRHH.docx",
       "problemaCentralId": "m11rrhh-pc",
       "nodes": [
@@ -5359,13 +5399,14 @@
           "id": "m11rrhh-pc",
           "type": "problema_central",
           "level": 0,
-          "label": "Limitadas condiciones para el desarrollo del talento humano…",
-          "description": "Limitadas condiciones para el desarrollo del talento humano en el MINAM y sus organismos adscritos",
+          "label": "Limitadas condiciones para el desarrollo de talento humano…",
+          "description": "Limitadas condiciones para el desarrollo de talento humano en el MINAM y sus organismos adscritos",
           "organo": "Transversal / Sectorial",
           "ejeTematico": "Gestión de recursos humanos",
           "severidad": "critica",
           "severidad_manual": false,
-          "fuente": "Árbol Mesa 11 RRHH.docx · pág. 1"
+          "fuente": "Árbol Mesa 11 RRHH.docx · pág. 1",
+          "textoOriginal": "Limitadas condiciones para el desarrollo del talento humano en el MINAM y sus organismos adscritos"
         },
         {
           "id": "m11rrhh-c1",

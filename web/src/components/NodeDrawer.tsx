@@ -196,6 +196,11 @@ export function NodeDrawer() {
                 <dt className="text-slate-400">ID</dt>
                 <dd className="font-mono text-xs leading-5 text-slate-500">{node.id}</dd>
               </dl>
+              {node.textoOriginal !== undefined && (
+                <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
+                  <span className="font-semibold text-slate-500">Texto original del documento:</span> {node.textoOriginal}
+                </p>
+              )}
             </Section>
           </div>
         </div>

@@ -169,8 +169,14 @@ export interface TreeView extends State {
 const ViewContext = createContext<TreeView | null>(null);
 const ActionsContext = createContext<TreeActions | null>(null);
 
-export function TreeStoreProvider({ children }: { children: ReactNode }) {
-  const firstTree = TREES[0]?.id ?? '';
+interface TreeStoreProviderProps {
+  /** Árbol con el que se inicializa el estado (p. ej. el de la URL); por defecto, el primero. */
+  initialTreeId?: string | undefined;
+  children: ReactNode;
+}
+
+export function TreeStoreProvider({ initialTreeId, children }: TreeStoreProviderProps) {
+  const firstTree = initialTreeId ?? TREES[0]?.id ?? '';
   const [state, dispatch] = useReducer(reducer, firstTree, (id) => freshState(id, 0));
 
   const actions = useMemo<TreeActions>(

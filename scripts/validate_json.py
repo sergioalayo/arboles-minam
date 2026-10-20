@@ -20,11 +20,11 @@ ORGANOS = DATA.with_name('organos.json')
 
 NODE_TYPES = {'efecto_indirecto', 'efecto_directo', 'problema_central', 'causa_directa', 'causa_indirecta'}
 SEVERIDADES = {'critica', 'moderada', 'baja'}
-TREE_KEYS = {'id': str, 'titulo': str, 'descripcionGeneral': str, 'archivoOrigen': str,
+TREE_KEYS = {'id': str, 'mesa': str, 'eje': str, 'problemaCentral': str, 'titulo': str, 'descripcionGeneral': str, 'archivoOrigen': str,
              'problemaCentralId': str, 'nodes': list, 'edges': list}
 NODE_REQ = {'id': str, 'type': str, 'level': int, 'label': str, 'description': str, 'organo': str,
             'ejeTematico': str, 'severidad': str, 'severidad_manual': bool, 'fuente': str}
-NODE_OPT = {'evidencia': str, 'isCollapsed': bool}
+NODE_OPT = {'evidencia': str, 'textoOriginal': str, 'isCollapsed': bool}
 EDGE_REQ = {'id': str, 'source': str, 'target': str}
 EDGE_OPT = {'label': str}
 
