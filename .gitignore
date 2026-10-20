@@ -23,3 +23,5 @@ scripts/.work/
 .env
 .DS_Store
 Thumbs.db
+
+raw-docs/
