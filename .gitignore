@@ -1,0 +1,25 @@
+# Dependencias Node
+node_modules/
+.npm
+
+# Builds y temporales Vite
+web/dist/
+web/dist-ssr/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+scripts/.work/
+
+# Vercel
+.vercel
+
+# Variables de entorno y SO
+.env
+.DS_Store
+Thumbs.db

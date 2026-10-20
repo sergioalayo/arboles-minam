@@ -1,0 +1,74 @@
+{
+  "DM": {
+    "nombre": "Despacho Ministerial",
+    "dependencia": null
+  },
+  "SG": {
+    "nombre": "Secretaría General",
+    "dependencia": "DM"
+  },
+  "VMGA": {
+    "nombre": "Viceministerio de Gestión Ambiental",
+    "dependencia": "DM"
+  },
+  "VMDERN": {
+    "nombre": "Viceministerio de Desarrollo Estratégico de los Recursos Naturales",
+    "dependencia": "DM"
+  },
+  "OGPP": {
+    "nombre": "Oficina General de Planeamiento y Presupuesto",
+    "dependencia": "SG"
+  },
+  "DGRS": {
+    "nombre": "Dirección General de Gestión de Residuos Sólidos",
+    "dependencia": "VMGA"
+  },
+  "DGCA": {
+    "nombre": "Dirección General de Calidad Ambiental",
+    "dependencia": "VMGA"
+  },
+  "DGCCA": {
+    "nombre": "Dirección General de Cambio Climático y Desertificación",
+    "dependencia": "VMDERN"
+  },
+  "DGB": {
+    "nombre": "Dirección General de Diversidad Biológica",
+    "dependencia": "VMDERN"
+  },
+  "DGOTA": {
+    "nombre": "Dirección General de Ordenamiento Territorial y Gestión Integrada de los Recursos Naturales",
+    "dependencia": "VMDERN"
+  },
+  "DGCF": {
+    "nombre": "Dirección General de Economía y Financiamiento Ambiental",
+    "dependencia": "VMDERN"
+  },
+  "OEFA": {
+    "nombre": "Organismo de Evaluación y Fiscalización Ambiental",
+    "dependencia": "Organismo público adscrito"
+  },
+  "SERNANP": {
+    "nombre": "Servicio Nacional de Áreas Naturales Protegidas por el Estado",
+    "dependencia": "Organismo público adscrito"
+  },
+  "SENAMHI": {
+    "nombre": "Servicio Nacional de Meteorología e Hidrología del Perú",
+    "dependencia": "Organismo público adscrito"
+  },
+  "IIAP": {
+    "nombre": "Instituto de Investigaciones de la Amazonía Peruana",
+    "dependencia": "Organismo público adscrito"
+  },
+  "INAIGEM": {
+    "nombre": "Instituto Nacional de Investigación en Glaciares y Ecosistemas de Montaña",
+    "dependencia": "Organismo público adscrito"
+  },
+  "SENACE": {
+    "nombre": "Servicio Nacional de Certificación Ambiental para las Inversiones Sostenibles",
+    "dependencia": "Organismo público adscrito"
+  },
+  "Transversal / Sectorial": {
+    "nombre": "Compromete a múltiples entidades o al diseño sectorial general",
+    "dependencia": null
+  }
+}
