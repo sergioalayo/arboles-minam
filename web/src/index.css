@@ -35,6 +35,24 @@ body {
   @apply size-8;
 }
 
+/* Micro-animaciones del CTA final de la Hoja de Ruta (solo transform/opacity). */
+@keyframes cta-nudge {
+  50% {
+    translate: 4px 0;
+  }
+}
+
+@keyframes cta-halo {
+  from {
+    opacity: 0.6;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 1.08 1.35;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .react-flow__node,
   .react-flow__node .problem-card {

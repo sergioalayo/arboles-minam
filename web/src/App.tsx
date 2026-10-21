@@ -3,6 +3,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Canvas } from '@/components/Canvas';
 import { NodeDrawer } from '@/components/NodeDrawer';
 import { OverviewGrid, type OverviewFilters } from '@/components/OverviewGrid';
+import { RoadmapView } from '@/components/RoadmapView';
 import { Toolbar } from '@/components/Toolbar';
 import { TREE_BY_ID } from '@/data/trees';
 import { navigate, parseHash, useHashRoute, type Route } from '@/hooks/useHashRoute';
@@ -49,8 +50,11 @@ function Shell() {
 
   useEffect(() => {
     const tree = routeTreeId ? TREE_BY_ID.get(routeTreeId) : undefined;
-    document.title = tree ? `${tree.titulo} · ${BASE_TITLE}` : `Vista Panorámica · ${BASE_TITLE}`;
-  }, [routeTreeId]);
+    const view = route.view === 'roadmap' ? 'Hoja de Ruta' : 'Vista Panorámica';
+    document.title = tree ? `${tree.titulo} · ${BASE_TITLE}` : `${view} · ${BASE_TITLE}`;
+  }, [routeTreeId, route.view]);
+
+  if (route.view === 'roadmap') return <RoadmapView />;
 
   if (route.view === 'overview') {
     return (

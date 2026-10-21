@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, type MouseEvent } from 'react';
 import { ArrowRight, Filter, Network, Search, SearchX, X } from 'lucide-react';
+import { ViewTabs } from '@/components/ViewTabs';
 import { routeHref } from '@/hooks/useHashRoute';
 import { normalize } from '@/lib/graph';
 import { MESAS, ORGANOS_CAUSALES, splitMatches, summaryMatches, type MesaGroup, type SubEje } from '@/lib/overview';
@@ -283,7 +284,10 @@ export function OverviewGrid({ filters, onFiltersChange, onOpenTree }: OverviewG
   return (
     <div ref={scrollRef} className="h-dvh overflow-y-auto bg-slate-50 text-slate-900">
       <header className="bg-slate-900 text-white">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-4 py-6 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:py-8">
+        <div className="mx-auto max-w-[1600px] px-4 pt-4 sm:px-6">
+          <ViewTabs active="overview" />
+        </div>
+        <div className="mx-auto flex max-w-[1600px] flex-col gap-5 px-4 py-6 sm:px-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-amber-300" aria-hidden>
               <Network className="size-6" />
