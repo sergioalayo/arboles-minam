@@ -25,6 +25,11 @@ const INDENT = 16;
 const SHARED_WIDTH = 300;
 const SHARED_GAP = 40;
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
 export interface Box {
   x: number;
   y: number;
@@ -46,7 +51,19 @@ export interface TreeLayout {
   placedUnder: Map<string, string>;
   /** Causas raíz / efectos finales con varios padres: van en una fila propia, enlazados a todos. */
   shared: Set<string>;
+  /** Trazo ortogonal (coordenadas del lienzo) de cada arista que sale de su panel, por `padre>hijo`. */
+  routes: Map<string, Point[]>;
   bounds: Box;
+}
+
+/** Ubicación de un nodo en su panel; `col = -1` para la causa (o efecto) directa. */
+interface Slot {
+  panel: PanelBox;
+  col: number;
+  cols: number;
+  colLeft: number;
+  /** Último de su sub-columna: nada lo separa del borde exterior del panel. */
+  outermost: boolean;
 }
 
 export interface Viewport {
@@ -224,24 +241,149 @@ function placeShared(index: TreeIndex, ids: string[], side: Side, offset: number
 }
 
 /** Ubica una fila de paneles; en efectos se refleja verticalmente (crecen hacia arriba). */
-function placeSide(plan: SidePlan, side: Side, offset: number, out: TreeLayout): void {
+function placeSide(plan: SidePlan, side: Side, offset: number, out: TreeLayout, slots: Map<string, Slot>): void {
   const flip = (y: number, h: number) => (side === 'causa' ? offset + y : -offset - y - h);
   let x = -plan.width / 2;
   for (const p of plan.panels) {
-    out.panels.push({ id: p.input.id, side, x, y: flip(0, p.height), width: p.width, height: p.height });
+    const panel: PanelBox = { id: p.input.id, side, x, y: flip(0, p.height), width: p.width, height: p.height };
+    const cols = p.columns.length;
+    out.panels.push(panel);
     out.boxes.set(p.input.id, { x: x + PAD, y: flip(PAD, p.directHeight), width: p.innerWidth, height: p.directHeight });
+    slots.set(p.input.id, { panel, col: -1, cols, colLeft: x + PAD, outermost: cols === 0 });
     const top = PAD + p.directHeight + STACK_GAP;
     p.columns.forEach((col, j) => {
       const colX = x + PAD + j * (DEEP_WIDTH + SUB_GAP);
+      const items = col.flatMap((b) => b.items);
       let y = top;
-      for (const block of col) {
-        for (const item of block.items) {
-          out.boxes.set(item.id, { x: colX + (item.depth - 1) * INDENT, y: flip(y, item.height), width: item.width, height: item.height });
-          y += item.height + STACK_GAP;
-        }
-      }
+      items.forEach((item, k) => {
+        out.boxes.set(item.id, { x: colX + (item.depth - 1) * INDENT, y: flip(y, item.height), width: item.width, height: item.height });
+        slots.set(item.id, { panel, col: j, cols, colLeft: colX, outermost: k === items.length - 1 });
+        y += item.height + STACK_GAP;
+      });
     });
     x += p.width + PANEL_GAP;
+  }
+}
+
+/** Canal vertical junto a un nodo, a su izquierda (`s = -1`) o derecha; `outside` si queda entre paneles. */
+function gutter(slot: Slot, s: -1 | 1): { s: -1 | 1; x: number; outside: boolean } {
+  const p = slot.panel;
+  const edge = slot.col < 0 || (s < 0 ? slot.col === 0 : slot.col === slot.cols - 1);
+  if (edge) return { s, x: s < 0 ? p.x - PANEL_GAP / 2 : p.x + p.width + PANEL_GAP / 2, outside: true };
+  return { s, x: s < 0 ? slot.colLeft - SUB_GAP / 2 : slot.colLeft + DEEP_WIDTH + SUB_GAP / 2, outside: false };
+}
+
+/** Canal del lado que mira hacia `towardX`; con `preferOutside`, el que queda entre paneles si lo hay. */
+function pickGutter(slot: Slot, box: Box, towardX: number, preferOutside: boolean) {
+  const facing = gutter(slot, towardX < box.x + box.width / 2 ? -1 : 1);
+  if (!preferOutside || facing.outside) return facing;
+  const other = gutter(slot, facing.s === -1 ? 1 : -1);
+  return other.outside ? other : facing;
+}
+
+const centerOf = (b: Box): Point => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
+
+/**
+ * Trazos ortogonales de las aristas que salen de su panel, sin atravesar tarjetas:
+ * - Hacia la fila de compartidos: la tarjeta sale por su borde exterior (abajo en causas, arriba en
+ *   efectos) si es la última de su sub-columna; si no, por el canal lateral que mira al destino.
+ *   Cada destino tiene su carril horizontal y reparte las llegadas a lo ancho de su borde.
+ * - Entre paneles: por el canal entre paneles; si no son vecinos, cruzan por el carril que separa
+ *   la fila de paneles del problema central.
+ * `rowEdge` es la distancia al centro del borde exterior de cada fila de paneles; `innerEdge`, la del interior.
+ */
+function routeEdges(
+  index: TreeIndex,
+  visible: Set<string>,
+  out: TreeLayout,
+  slots: Map<string, Slot>,
+  rowEdge: Record<Side, number>,
+  innerEdge: number,
+): void {
+  const dirOf = (id: string) => ((index.byId.get(id)?.level ?? 0) > 0 ? 1 : -1);
+  // Tramos verticales por canal: si varias aristas usan el mismo, se separan en pistas paralelas.
+  const tracks = new Map<number, { step: number; groups: Point[][] }>();
+  const onTrack = (g: { x: number; outside: boolean }, pts: Point[]) => {
+    const key = Math.round(g.x);
+    const track = tracks.get(key) ?? { step: g.outside ? 6 : 3, groups: [] };
+    track.groups.push(pts);
+    tracks.set(key, track);
+  };
+
+  for (const side of ['causa', 'efecto'] as const) {
+    const dir = side === 'causa' ? 1 : -1;
+    const targets = [...out.shared]
+      .flatMap((id) => {
+        const box = out.boxes.get(id);
+        return box && dirOf(id) === dir ? [{ id, box }] : [];
+      })
+      .sort((a, b) => a.box.x - b.box.x);
+    targets.forEach(({ id: sid, box: S }, k) => {
+      const lane = dir * (rowEdge[side] + (SHARED_GAP * (k + 1)) / (targets.length + 1));
+      const entryY = dir > 0 ? S.y : S.y + S.height;
+      // Salida de cada padre: por su borde exterior o, si tiene tarjetas detrás, por un canal lateral.
+      const exits: { pid: string; start: Point; turn: Point | null; gutter: ReturnType<typeof gutter> | null }[] = [];
+      for (const pid of index.parents.get(sid) ?? []) {
+        const P = out.boxes.get(pid);
+        if (!P || !visible.has(pid)) continue;
+        const c = centerOf(P);
+        const slot = slots.get(pid);
+        if (!slot || slot.outermost) exits.push({ pid, start: { x: c.x, y: dir > 0 ? P.y + P.height : P.y }, turn: null, gutter: null });
+        else {
+          const g = pickGutter(slot, P, centerOf(S).x, false);
+          exits.push({ pid, start: { x: g.s < 0 ? P.x : P.x + P.width, y: c.y }, turn: { x: g.x, y: c.y }, gutter: g });
+        }
+      }
+      exits.sort((a, b) => (a.turn ?? a.start).x - (b.turn ?? b.start).x);
+      exits.forEach((e, i) => {
+        const entryX = S.x + (S.width * (i + 1)) / (exits.length + 1);
+        const down = { x: (e.turn ?? e.start).x, y: lane };
+        if (e.turn && e.gutter) onTrack(e.gutter, [e.turn, down]);
+        out.routes.set(`${e.pid}>${sid}`, [e.start, ...(e.turn ? [e.turn] : []), down, { x: entryX, y: lane }, { x: entryX, y: entryY }]);
+      });
+    });
+  }
+
+  const lanesUsed = new Map<number, number>();
+  for (const [child, placedParent] of out.placedUnder) {
+    for (const pid of index.parents.get(child) ?? []) {
+      if (pid === placedParent || pid === index.centralId || !visible.has(pid)) continue;
+      const A = out.boxes.get(pid);
+      const T = out.boxes.get(child);
+      const sa = slots.get(pid);
+      const st = slots.get(child);
+      if (!A || !T || !sa || !st) continue;
+      const a = centerOf(A);
+      const t = centerOf(T);
+      const ga = pickGutter(sa, A, t.x, true);
+      const gt = pickGutter(st, T, a.x, true);
+      const start = { x: ga.s < 0 ? A.x : A.x + A.width, y: a.y };
+      const end = { x: gt.s < 0 ? T.x : T.x + T.width, y: t.y };
+      const out1 = { x: ga.x, y: a.y };
+      const in1 = { x: gt.x, y: t.y };
+      if (Math.abs(ga.x - gt.x) < 1) {
+        onTrack(ga, [out1, in1]);
+        out.routes.set(`${pid}>${child}`, [start, out1, in1, end]);
+        continue;
+      }
+      // Paneles no vecinos: se cruza por el carril interior (carriles escalonados si hay varios).
+      const dir = dirOf(child);
+      const k = lanesUsed.get(dir) ?? 0;
+      lanesUsed.set(dir, k + 1);
+      const lane = dir * (innerEdge - 8 - 6 * (k % 3));
+      const out2 = { x: ga.x, y: lane };
+      const in2 = { x: gt.x, y: lane };
+      onTrack(ga, [out1, out2]);
+      onTrack(gt, [in2, in1]);
+      out.routes.set(`${pid}>${child}`, [start, out1, out2, in2, in1, end]);
+    }
+  }
+
+  for (const { step, groups } of tracks.values()) {
+    groups.forEach((pts, i) => {
+      const dx = (i - (groups.length - 1) / 2) * step;
+      for (const p of pts) p.x += dx;
+    });
   }
 }
 
@@ -284,14 +426,16 @@ export function layoutTree(index: TreeIndex, visible: Set<string>, viewport: Vie
   }
 
   for (const id of shared) placed.delete(id);
-  const out: TreeLayout = { boxes: new Map(), panels: [], placedUnder: placed, shared, bounds: { x: 0, y: 0, width: 0, height: 0 } };
+  const out: TreeLayout = { boxes: new Map(), panels: [], placedUnder: placed, shared, routes: new Map(), bounds: { x: 0, y: 0, width: 0, height: 0 } };
+  const slots = new Map<string, Slot>();
   out.boxes.set(index.centralId, { x: -CENTRAL_WIDTH / 2, y: -centralHeight / 2, width: CENTRAL_WIDTH, height: centralHeight });
   if (best) {
     const offset = centralHeight / 2 + CENTRAL_GAP;
-    placeSide(best.c, 'causa', offset, out);
-    placeSide(best.e, 'efecto', offset, out);
+    placeSide(best.c, 'causa', offset, out, slots);
+    placeSide(best.e, 'efecto', offset, out, slots);
     placeShared(index, sharedCauses, 'causa', offset + best.c.height + SHARED_GAP, out);
     placeShared(index, sharedEffects, 'efecto', offset + best.e.height + SHARED_GAP, out);
+    routeEdges(index, visible, out, slots, { causa: offset + best.c.height, efecto: offset + best.e.height }, offset);
   }
   const all = [...out.boxes.values(), ...out.panels];
   const minX = Math.min(...all.map((b) => b.x));

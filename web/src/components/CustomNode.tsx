@@ -66,9 +66,8 @@ function CustomNodeComponent({ data, width, height }: NodeProps<ProblemFlowNode>
         'problem-card group relative flex cursor-pointer flex-col overflow-hidden border border-l-4 outline-none',
         'transition-[opacity,box-shadow] duration-300 ease-out hover:shadow-lg',
         'focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2',
-        isCentral
-          ? 'rounded-xl border-slate-700 bg-slate-900 text-white shadow-md'
-          : 'rounded-lg border-slate-200 bg-white text-slate-900 shadow-sm',
+        isCentral ? 'rounded-xl text-white shadow-md' : 'rounded-lg text-slate-900 shadow-sm',
+        styles.card,
         styles.accent,
         data.isSelected && 'ring-2 ring-offset-2 ring-slate-900',
         data.isSearchHit && !data.isSelected && 'ring-2 ring-amber-400 ring-offset-1',
@@ -90,7 +89,7 @@ function CustomNodeComponent({ data, width, height }: NodeProps<ProblemFlowNode>
             className={handleClass}
             isConnectable={false}
           />
-          {/* Enlaces del DAG fuera del panel: por el costado izquierdo. */}
+          {/* Enlaces del DAG fuera del panel: su trazo lo calcula el layout (RoutedEdge); estos puntos solo los anclan. */}
           <Handle id="side-out" type="source" position={Position.Left} style={{ top: '72%' }} className={handleClass} isConnectable={false} />
           <Handle id="side-in" type="target" position={Position.Left} style={{ top: '28%' }} className={handleClass} isConnectable={false} />
         </>
@@ -106,11 +105,13 @@ function CustomNodeComponent({ data, width, height }: NodeProps<ProblemFlowNode>
             </span>
           )}
           <span
-            className={cn('uppercase', styles.eyebrow)}
+            className={cn('inline-block rounded-[3px] align-[1px] uppercase', styles.badge)}
             style={{
               fontSize: INLINE_BADGE.fontSize,
               fontWeight: INLINE_BADGE.weight,
               letterSpacing: INLINE_BADGE.letterSpacing,
+              lineHeight: `${INLINE_BADGE.lineHeight}px`,
+              padding: `0 ${INLINE_BADGE.padX}px`,
               marginRight: INLINE_BADGE.marginRight,
             }}
           >
@@ -122,7 +123,9 @@ function CustomNodeComponent({ data, width, height }: NodeProps<ProblemFlowNode>
         <>
           {/* Cabecera de una línea */}
           <div className="flex min-w-0 shrink-0 items-center gap-1.5" style={{ height: m.header }}>
-            <span className={cn('truncate text-[10px] font-bold uppercase tracking-wider', styles.eyebrow)}>{KIND_LABEL[kind]}</span>
+            <span className={cn('truncate rounded px-1.5 text-[10px] font-bold uppercase leading-4 tracking-wider', styles.badge)}>
+              {KIND_LABEL[kind]}
+            </span>
             <span className="ml-auto" />
             {toggle}
           </div>

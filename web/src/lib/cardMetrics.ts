@@ -24,7 +24,7 @@ export const CARD_METRICS: Record<CardKind, Metrics> = {
 };
 
 /** Elementos en línea de las tarjetas `deep` (ver CustomNode): denominación al inicio, colapso a la derecha. */
-export const INLINE_BADGE = { fontSize: 9.5, weight: 700, letterSpacing: 0.5, marginRight: 5 } as const;
+export const INLINE_BADGE = { fontSize: 9.5, weight: 700, letterSpacing: 0.5, padX: 4, lineHeight: 14, marginRight: 5 } as const;
 export const INLINE_CONTROLS = { toggle: 30, marginLeft: 4 } as const;
 
 /** Bordes: 1 px en general y 4 px en el acento izquierdo. */
@@ -93,7 +93,7 @@ export function cardHeight(text: string, kind: CardKind, width: number, inline?:
     const c = context();
     const label = inline.badge.toUpperCase();
     const badge = (c ? textWidth(c, label, INLINE_BADGE.weight, INLINE_BADGE.fontSize) : label.length * 7) + label.length * INLINE_BADGE.letterSpacing;
-    reserve = Math.ceil(badge) + INLINE_BADGE.marginRight + (inline.toggle ? INLINE_CONTROLS.toggle + INLINE_CONTROLS.marginLeft : 0);
+    reserve = Math.ceil(badge) + 2 * INLINE_BADGE.padX + INLINE_BADGE.marginRight +(inline.toggle ? INLINE_CONTROLS.toggle + INLINE_CONTROLS.marginLeft : 0);
   }
   const inner = width - BORDER_X - 2 * m.padX;
   return Math.ceil(BORDER_Y + 2 * m.padY + m.header + m.gap + countLines(text, kind, inner, reserve) * m.lineHeight);

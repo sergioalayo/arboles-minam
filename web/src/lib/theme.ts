@@ -73,15 +73,62 @@ export const KIND_COLOR: Record<NodeKind, string> = {
   causa_raiz: '#7f1d1d',
 };
 
-/** Clases estáticas (Tailwind requiere nombres completos en el código fuente). */
-export const KIND_CLASSES: Record<NodeKind, { accent: string; eyebrow: string; soft: string }> = {
-  efecto_final: { accent: 'border-l-[#312e81]', eyebrow: 'text-[#312e81]', soft: 'bg-indigo-100 text-[#312e81]' },
-  efecto_indirecto: { accent: 'border-l-[#4338ca]', eyebrow: 'text-[#4338ca]', soft: 'bg-indigo-50 text-[#4338ca]' },
-  efecto_directo: { accent: 'border-l-[#0369a1]', eyebrow: 'text-[#0369a1]', soft: 'bg-sky-50 text-[#0369a1]' },
-  problema_central: { accent: 'border-l-amber-400', eyebrow: 'text-amber-300', soft: 'bg-slate-100 text-slate-900' },
-  causa_directa: { accent: 'border-l-[#c2410c]', eyebrow: 'text-[#c2410c]', soft: 'bg-orange-50 text-[#c2410c]' },
-  causa_indirecta: { accent: 'border-l-[#b91c1c]', eyebrow: 'text-[#b91c1c]', soft: 'bg-red-50 text-[#b91c1c]' },
-  causa_raiz: { accent: 'border-l-[#7f1d1d]', eyebrow: 'text-[#7f1d1d]', soft: 'bg-red-100 text-[#7f1d1d]' },
+/**
+ * Clases estáticas (Tailwind requiere nombres completos en el código fuente). En la Vista general
+ * cada nivel se distingue por tres señales a la vez: el tono, la etiqueta (`badge`: sólida en
+ * directos y en raíz / finales, suave en indirectos) y la superficie de la tarjeta (`card`: blanca
+ * en directos e indirectos, teñida en raíz / finales).
+ */
+export const KIND_CLASSES: Record<NodeKind, { accent: string; eyebrow: string; soft: string; badge: string; card: string }> = {
+  efecto_final: {
+    accent: 'border-l-[#312e81]',
+    eyebrow: 'text-[#312e81]',
+    soft: 'bg-indigo-100 text-[#312e81]',
+    badge: 'bg-[#312e81] text-white',
+    card: 'border-indigo-300 bg-indigo-100',
+  },
+  efecto_indirecto: {
+    accent: 'border-l-[#4338ca]',
+    eyebrow: 'text-[#4338ca]',
+    soft: 'bg-indigo-50 text-[#4338ca]',
+    badge: 'bg-indigo-50 text-[#4338ca] ring-1 ring-inset ring-indigo-300',
+    card: 'border-slate-200 bg-white',
+  },
+  efecto_directo: {
+    accent: 'border-l-[#0369a1]',
+    eyebrow: 'text-[#0369a1]',
+    soft: 'bg-sky-50 text-[#0369a1]',
+    badge: 'bg-[#0369a1] text-white',
+    card: 'border-sky-300 bg-white',
+  },
+  problema_central: {
+    accent: 'border-l-amber-400',
+    eyebrow: 'text-amber-300',
+    soft: 'bg-slate-100 text-slate-900',
+    badge: 'bg-amber-400 text-slate-900',
+    card: 'border-slate-700 bg-slate-900',
+  },
+  causa_directa: {
+    accent: 'border-l-[#c2410c]',
+    eyebrow: 'text-[#c2410c]',
+    soft: 'bg-orange-50 text-[#c2410c]',
+    badge: 'bg-[#c2410c] text-white',
+    card: 'border-orange-300 bg-white',
+  },
+  causa_indirecta: {
+    accent: 'border-l-[#b91c1c]',
+    eyebrow: 'text-[#b91c1c]',
+    soft: 'bg-red-50 text-[#b91c1c]',
+    badge: 'bg-red-50 text-[#b91c1c] ring-1 ring-inset ring-red-300',
+    card: 'border-slate-200 bg-white',
+  },
+  causa_raiz: {
+    accent: 'border-l-[#7f1d1d]',
+    eyebrow: 'text-[#7f1d1d]',
+    soft: 'bg-red-100 text-[#7f1d1d]',
+    badge: 'bg-[#7f1d1d] text-white',
+    card: 'border-red-300 bg-red-100',
+  },
 };
 
 /** Denominación corta, en línea al inicio del texto de las tarjetas compactas. */

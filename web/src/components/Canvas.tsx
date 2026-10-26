@@ -8,9 +8,11 @@ import {
   ReactFlow,
   useReactFlow,
   useStore,
+  type EdgeTypes,
   type NodeTypes,
 } from '@xyflow/react';
 import { CustomNode, PanelNode } from '@/components/CustomNode';
+import { RoutedEdge } from '@/components/RoutedEdge';
 import { Legend } from '@/components/Legend';
 import { useTreeLayout } from '@/hooks/useTreeLayout';
 import { LEGIBLE_ZOOM } from '@/lib/layout';
@@ -20,6 +22,7 @@ import { useTreeActions, useTreeView } from '@/state/TreeStore';
 import type { FlowNode, ProblemFlowEdge } from '@/types/tree';
 
 const nodeTypes: NodeTypes = { problem: CustomNode, panel: PanelNode };
+const edgeTypes: EdgeTypes = { routed: RoutedEdge };
 
 const EDGE_IDLE = '#94a3b8';
 /** Alto que ocupa la barra flotante sobre el lienzo (el centro visual queda por debajo). */
@@ -45,7 +48,7 @@ export function Canvas({ searchQuery, drawerOpen }: CanvasProps) {
   const paneWidth = useStore((st) => st.width);
   const paneHeight = useStore((st) => st.height);
   const { index, visible, collapsed, dimmed, selectedId, focus } = view;
-  const { boxes, panels, placedUnder, shared, bounds } = useTreeLayout(index, visible);
+  const { boxes, panels, placedUnder, shared, routes, bounds } = useTreeLayout(index, visible);
 
   const searchHits = useMemo(() => {
     const q = normalize(searchQuery.trim());
@@ -129,6 +132,9 @@ export function Canvas({ searchQuery, drawerOpen }: CanvasProps) {
       // Fila de causas raíz / efectos finales compartidos: enlace continuo con cada padre.
       const toShared = shared.has(child.id);
       if (!fromCentral && !toShared && placedUnder.get(child.id) === parent.id) continue;
+      // Trazo precalculado que no atraviesa tarjetas (sale por el borde o por los canales).
+      const points = fromCentral ? undefined : routes.get(`${parent.id}>${child.id}`);
+      if (!fromCentral && !points) continue;
       const onPath = !dimmed.has(parent.id) && !dimmed.has(child.id);
       const color = highlight && onPath ? KIND_COLOR[kindOf(child.level)] : EDGE_IDLE;
       const marker = { type: MarkerType.ArrowClosed, color, width: 16, height: 16 };
@@ -139,7 +145,7 @@ export function Canvas({ searchQuery, drawerOpen }: CanvasProps) {
         target: child.id,
         sourceHandle: fromCentral ? (isCause ? 'causas' : 'efectos') : 'side-out',
         targetHandle: fromCentral || toShared ? 'in' : 'side-in',
-        type: 'smoothstep',
+        ...(points ? { type: 'routed', data: { points } } : { type: 'smoothstep' }),
         focusable: false,
         selectable: false,
         ...(isCause ? { markerStart: marker } : { markerEnd: marker }),
@@ -153,7 +159,7 @@ export function Canvas({ searchQuery, drawerOpen }: CanvasProps) {
       });
     }
     return out;
-  }, [placedUnder, shared, visible, index, dimmed, selectedId]);
+  }, [placedUnder, shared, routes, visible, index, dimmed, selectedId]);
 
   // Encuadre de cámara ante solicitudes del estado global (selección, filtros, cambio de árbol…).
   const handledSeq = useRef(-1);
@@ -192,6 +198,7 @@ export function Canvas({ searchQuery, drawerOpen }: CanvasProps) {
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       // `onNodeClick` = onNodeSelect. Además, React Flow solo habilita eventos de puntero en nodos
       // no seleccionables/arrastrables cuando existe este manejador.
       onNodeClick={(_, node) => {
