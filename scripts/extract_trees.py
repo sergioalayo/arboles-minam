@@ -29,6 +29,7 @@ from docx.oxml.ns import qn
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from classify import (ORGANOS, TRANSVERSAL, assign_severity, classify_eje, classify_organo,  # noqa: E402
                       extract_evidencia, make_label)
+from apply_corrections import apply as apply_corrections  # noqa: E402
 from shapes import Shape, docx_shapes, pptx_slides  # noqa: E402
 from shapes import _paragraph_text as paragraph_text  # noqa: E402
 
@@ -671,6 +672,8 @@ def main() -> None:
     for t in trees:
         for n in t['nodes']:
             n.pop('_method', None)
+    for msg in apply_corrections(trees):
+        print('Corrección:', msg)
     for w in preserve_manual_severity(trees, OUT):
         print('AVISO:', w)
     manual = sum(n['severidad_manual'] for t in trees for n in t['nodes'])

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import {
-  ArrowLeft,
   ChevronDown,
   ChevronsDownUp,
   ChevronsUpDown,
@@ -10,7 +9,6 @@ import {
   LoaderCircle,
   Maximize2,
   Minimize2,
-  Network,
   RotateCcw,
   Scan,
 } from 'lucide-react';
@@ -18,7 +16,6 @@ import { SearchBox } from '@/components/SearchBox';
 import { TREES } from '@/data/trees';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { exportViewToPng } from '@/lib/exportPng';
-import { organoShort, organoTooltip } from '@/lib/theme';
 import { cn, plural } from '@/lib/utils';
 import { useTreeActions, useTreeView } from '@/state/TreeStore';
 
@@ -63,17 +60,18 @@ function countBy<T>(items: readonly T[], key: (t: T) => string): [string, number
 interface ToolbarProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  /** Regresa a la Vista Panorámica de todas las mesas. */
-  onBack: () => void;
 }
 
 /** Barra superior flotante: selector de árbol, buscador, filtros rápidos y acciones de vista. */
-export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
-  const { index, treeId, organoFilter, ejeFilter, visible, selectedId } = useTreeView();
+export function Toolbar({ searchQuery, onSearchChange }: ToolbarProps) {
+  const { index, treeId, ejeFilter, visible, selectedId } = useTreeView();
   const actions = useTreeActions();
-  const { getNodes, getNodesBounds } = useReactFlow();
+  const { getNodes, getNodesBounds, fitView } = useReactFlow();
   const { isFullscreen, toggle: toggleFullscreen, supported: fullscreenSupported } = useFullscreen();
   const [exporting, setExporting] = useState(false);
+  // Los filtros se pliegan para dejar más alto útil al lienzo; con un filtro activo siguen visibles.
+  const [showFilters, setShowFilters] = useState(false);
+  const filtersVisible = showFilters || ejeFilter !== null;
   const tree = index.tree;
 
   // Al entrar/salir de pantalla completa cambia el área útil: se reencuadra el grafo.
@@ -89,7 +87,6 @@ export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
   const onExport = async () => {
     const context = [
       selectedId ? `Ruta causal: ${index.byId.get(selectedId)?.label ?? ''}` : null,
-      organoFilter ? `Órgano: ${organoFilter}` : null,
       ejeFilter ? `Eje: ${ejeFilter}` : null,
     ].filter(Boolean);
     const fecha = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -99,7 +96,7 @@ export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
         bounds: getNodesBounds(getNodes()),
         title: tree.titulo,
         subtitle: [`${visible.size} de ${tree.nodes.length} nodos visibles`, ...context, `MINAM · ${fecha}`].join('   ·   '),
-        fileName: `${tree.titulo}${organoFilter ? `-${organoFilter}` : ''}`,
+        fileName: tree.titulo,
       });
     } catch (err) {
       console.error('Error al exportar PNG', err);
@@ -109,7 +106,6 @@ export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
     }
   };
 
-  const organos = useMemo(() => countBy(tree.nodes, (n) => n.organo), [tree]);
   const ejes = useMemo(() => countBy(tree.nodes.filter((n) => n.level !== 0), (n) => n.ejeTematico), [tree]);
 
   return (
@@ -117,17 +113,6 @@ export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
       <div className="@container pointer-events-auto rounded-xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            title="Volver a la Vista Panorámica de todas las mesas"
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-          >
-            <ArrowLeft className="size-4" aria-hidden />
-            <span className="hidden @[960px]:inline">Volver a Vista Panorámica</span>
-            <span className="sr-only @[960px]:hidden">Volver a Vista Panorámica</span>
-            <Network className="size-4 text-amber-300 @[960px]:hidden" aria-hidden />
-          </button>
           <label className="relative min-w-0 flex-1 sm:max-w-md">
             <span className="sr-only">Seleccionar árbol de problemas</span>
             <select
@@ -153,7 +138,7 @@ export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
         </div>
         <SearchBox query={searchQuery} onQueryChange={onSearchChange} />
         <div className="flex items-center gap-1.5">
-          <ActionButton onClick={actions.reset} icon={<RotateCcw className="size-4" />} title="Restablecer vista inicial y filtros">
+          <ActionButton onClick={actions.reset} icon={<RotateCcw className="size-4" />} title="Restablecer vista expandida y filtros">
             Restablecer Vista
           </ActionButton>
           <ActionButton onClick={actions.expandAll} icon={<ChevronsUpDown className="size-4" />} title="Expandir todas las ramas">
@@ -162,8 +147,20 @@ export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
           <ActionButton onClick={actions.collapseAll} icon={<ChevronsDownUp className="size-4" />} title="Colapsar a causas y efectos directos">
             Colapsar Todo
           </ActionButton>
-          <ActionButton onClick={actions.fitView} icon={<Scan className="size-4" />} title="Ajustar el grafo a la pantalla">
-            Ajustar
+          <ActionButton
+            onClick={() => setShowFilters((v) => !v)}
+            pressed={filtersVisible}
+            icon={<Filter className="size-4" />}
+            title={filtersVisible ? 'Ocultar filtro por eje temático' : 'Mostrar filtro por eje temático'}
+          >
+            Filtros
+          </ActionButton>
+          <ActionButton
+            onClick={() => void fitView({ padding: { top: '80px', bottom: '56px', x: '24px' }, duration: 650, maxZoom: 1.1 })}
+            icon={<Scan className="size-4" />}
+            title="Ver el árbol completo de un vistazo"
+          >
+            Ver todo
           </ActionButton>
           <ActionButton
             onClick={() => void onExport()}
@@ -187,54 +184,30 @@ export function Toolbar({ searchQuery, onSearchChange, onBack }: ToolbarProps) {
       </div>
       </div>
 
-      <div className="pointer-events-auto flex max-w-full items-center gap-1.5 self-start overflow-x-auto rounded-xl border border-slate-200 bg-white/95 px-2 py-1.5 shadow-md backdrop-blur">
-        <Filter className="size-3.5 shrink-0 text-slate-400" aria-hidden />
-        <button
-          type="button"
-          onClick={() => actions.setOrganoFilter(null)}
-          className={cn(
-            'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-            organoFilter === null ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100',
-          )}
-        >
-          Todos
-        </button>
-        {organos.map(([organo, n]) => (
-          <button
-            key={organo}
-            type="button"
-            onClick={() => actions.setOrganoFilter(organoFilter === organo ? null : organo)}
-            aria-pressed={organoFilter === organo}
-            title={`${organoTooltip(organo)} (${plural(n, 'nodo')})`}
-            className={cn(
-              'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-              organoFilter === organo ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100',
-            )}
-          >
-            Solo {organoShort(organo)} <span className="opacity-60">{n}</span>
-          </button>
-        ))}
-        <span className="mx-1 h-4 w-px shrink-0 bg-slate-200" aria-hidden />
-        <label className="relative shrink-0">
-          <span className="sr-only">Filtrar por eje temático</span>
-          <select
-            value={ejeFilter ?? ''}
-            onChange={(e) => actions.setEjeFilter(e.target.value || null)}
-            className={cn(
-              'h-7 appearance-none rounded-full border pl-2.5 pr-7 text-xs font-medium focus:outline-none',
-              ejeFilter ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600',
-            )}
-          >
-            <option value="">Todos los ejes temáticos</option>
-            {ejes.map(([eje, n]) => (
-              <option key={eje} value={eje}>
-                {eje} ({n})
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 opacity-60" aria-hidden />
-        </label>
-      </div>
+      {filtersVisible && (
+        <div className="pointer-events-auto flex max-w-full items-center gap-1.5 self-start overflow-x-auto rounded-xl border border-slate-200 bg-white/95 px-2 py-1.5 shadow-md backdrop-blur">
+          <Filter className="size-3.5 shrink-0 text-slate-400" aria-hidden />
+          <label className="relative shrink-0">
+            <span className="sr-only">Filtrar por eje temático</span>
+            <select
+              value={ejeFilter ?? ''}
+              onChange={(e) => actions.setEjeFilter(e.target.value || null)}
+              className={cn(
+                'h-7 appearance-none rounded-full border pl-2.5 pr-7 text-xs font-medium focus:outline-none',
+                ejeFilter ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600',
+              )}
+            >
+              <option value="">Todos los ejes temáticos</option>
+              {ejes.map(([eje, n]) => (
+                <option key={eje} value={eje}>
+                  {eje} ({n})
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 opacity-60" aria-hidden />
+          </label>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,10 @@
 | `causa_directa` | `1` | Inferior (Tierra/Sur) | Ámbar / Naranja (`#c2410c`) |
 | `causa_indirecta` | `2` (o mayor) | Inferior (Tierra/Sur) | Rojo institucional (`#b91c1c`) |
 
+**Denominación en la interfaz (por nivel):** causas directas (`1`), indirectas (`2`) y raíz (`3` o mayor); efectos directos (`-1`), indirectos (`-2`) y finales (`-3` o menor). Si una rama tiene solo dos niveles, únicamente hay directos e indirectos. El campo `type` agrupa los niveles ≥ 2 como «indirectos»; la denominación se deriva de `level` (`web/src/lib/theme.ts`).
+
+**Correcciones estructurales:** las validadas por el equipo técnico se declaran en `scripts/apply_corrections.py` y se aplican al final de la extracción (o sobre el JSON vigente ejecutando ese script).
+
 ## Contrato de Aristas (`edges`)
 Para evitar inconsistencias en el auto-layout con `elkjs`:
 - **Sub-grafo de Causas:** Las aristas fluyen de causas indirectas hacia causas directas, y de causas directas hacia el problema central (`source: causa_hijo`, `target: causa_padre`).

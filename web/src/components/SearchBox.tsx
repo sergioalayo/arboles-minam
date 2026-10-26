@@ -2,7 +2,7 @@ import { useId, useMemo, useState, type KeyboardEvent } from 'react';
 import { Search, X } from 'lucide-react';
 import { TREES } from '@/data/trees';
 import { normalize } from '@/lib/graph';
-import { organoShort, organoTooltip, TYPE_COLOR } from '@/lib/theme';
+import { KIND_COLOR, KIND_LABEL, kindOf } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import { useTreeActions, useTreeView } from '@/state/TreeStore';
 import type { NodeMetadata, ProblemTree } from '@/types/tree';
@@ -20,7 +20,6 @@ const INDEX = TREES.flatMap((tree) =>
     tree,
     node,
     label: normalize(node.label),
-    organo: normalize(node.organo),
     full: normalize(`${node.description} ${node.ejeTematico}`),
   })),
 );
@@ -30,7 +29,7 @@ interface SearchBoxProps {
   onQueryChange: (q: string) => void;
 }
 
-/** Buscador predictivo por texto o unidad orgánica, en todos los árboles (prioriza el actual). */
+/** Buscador predictivo por texto, en todos los árboles (prioriza el actual). */
 export function SearchBox({ query, onQueryChange }: SearchBoxProps) {
   const { treeId } = useTreeView();
   const { focusNode } = useTreeActions();
@@ -44,10 +43,8 @@ export function SearchBox({ query, onQueryChange }: SearchBoxProps) {
     const out: Hit[] = [];
     for (const e of INDEX) {
       let score = 0;
-      if (e.organo === q) score = 5;
-      else if (e.label.startsWith(q)) score = 4;
-      else if (e.label.includes(q)) score = 3;
-      else if (e.organo.includes(q)) score = 2;
+      if (e.label.startsWith(q)) score = 3;
+      else if (e.label.includes(q)) score = 2;
       else if (e.full.includes(q)) score = 1;
       if (score === 0) continue;
       out.push({ tree: e.tree, node: e.node, score: score + (e.tree.id === treeId ? 0.5 : 0) });
@@ -86,7 +83,7 @@ export function SearchBox({ query, onQueryChange }: SearchBoxProps) {
         aria-expanded={open && hits.length > 0}
         aria-controls={listId}
         aria-autocomplete="list"
-        placeholder="Buscar causa, efecto u órgano…"
+        placeholder="Buscar causa o efecto…"
         value={query}
         onChange={(e) => {
           onQueryChange(e.target.value);
@@ -123,11 +120,11 @@ export function SearchBox({ query, onQueryChange }: SearchBoxProps) {
                 onMouseEnter={() => setActive(i)}
                 className={cn('flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left', i === active && 'bg-slate-100')}
               >
-                <span className="mt-1.5 size-2 shrink-0 rounded-full" style={{ backgroundColor: TYPE_COLOR[hit.node.type] }} />
+                <span className="mt-1.5 size-2 shrink-0 rounded-full" style={{ backgroundColor: KIND_COLOR[kindOf(hit.node.level)] }} />
                 <span className="min-w-0">
                   <span className="block text-sm leading-snug text-slate-800">{hit.node.label}</span>
-                  <span className="block truncate text-xs text-slate-500" title={organoTooltip(hit.node.organo)}>
-                    {organoShort(hit.node.organo)} · {hit.tree.titulo}
+                  <span className="block truncate text-xs text-slate-500">
+                    {KIND_LABEL[kindOf(hit.node.level)]} · {hit.tree.titulo}
                   </span>
                 </span>
               </button>

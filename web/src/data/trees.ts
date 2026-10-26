@@ -1,6 +1,5 @@
 import raw from '@data/arboles.json';
-import rawOrganos from '@data/organos.json';
-import type { NodeType, OrganoCatalog, ProblemTree, RootData, Severidad } from '@/types/tree';
+import type { NodeType, ProblemTree, RootData, Severidad } from '@/types/tree';
 
 const NODE_TYPES: ReadonlySet<string> = new Set<NodeType>([
   'efecto_indirecto',
@@ -48,5 +47,3 @@ function parseRootData(value: unknown): RootData {
 export const ROOT: RootData = parseRootData(raw);
 export const TREES: readonly ProblemTree[] = ROOT.arboles;
 export const TREE_BY_ID: ReadonlyMap<string, ProblemTree> = new Map(TREES.map((t) => [t.id, t]));
-
-export const ORGANOS: OrganoCatalog = rawOrganos satisfies OrganoCatalog;

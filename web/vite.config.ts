@@ -18,7 +18,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('elkjs')) return 'elk';
           if (id.includes('@xyflow')) return 'xyflow';
           return undefined;
         },

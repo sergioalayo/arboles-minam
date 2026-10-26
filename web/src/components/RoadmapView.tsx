@@ -11,10 +11,10 @@ import {
 import { ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Flag } from 'lucide-react';
 import { ViewTabs } from '@/components/ViewTabs';
 import { FASES, ROADMAP_METRICAS, type Fase, type Hito } from '@/data/roadmapData';
-import { routeHref } from '@/hooks/useHashRoute';
+import { HOME, routeHref } from '@/hooks/useHashRoute';
 import { cn } from '@/lib/utils';
 
-const OVERVIEW_HREF = routeHref({ view: 'overview' });
+const OVERVIEW_HREF = routeHref(HOME);
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2';
 const MICRO_LABEL = 'text-[10px] font-bold uppercase tracking-wider text-slate-500';
 

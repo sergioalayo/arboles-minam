@@ -863,9 +863,9 @@
           "fuente": "Árbol Mesa 2 - Simplificación.pptx · diapositiva 1"
         },
         {
-          "id": "m2-c3-1-1",
+          "id": "m2-c3-2",
           "type": "causa_indirecta",
-          "level": 3,
+          "level": 2,
           "label": "Limitada coordinación y/o articulación entre entidades del Sector Público",
           "description": "Limitada coordinación y/o articulación entre entidades del Sector Público",
           "organo": "Transversal / Sectorial",
@@ -942,11 +942,6 @@
           "target": "m2-pc"
         },
         {
-          "id": "m2-c3-1-1__m2-c3-1",
-          "source": "m2-c3-1-1",
-          "target": "m2-c3-1"
-        },
-        {
           "id": "m2-c3-1__m2-c3",
           "source": "m2-c3-1",
           "target": "m2-c3"
@@ -1005,6 +1000,11 @@
           "id": "m2-pc__m2-e4",
           "source": "m2-pc",
           "target": "m2-e4"
+        },
+        {
+          "id": "m2-c3-2__m2-c3",
+          "source": "m2-c3-2",
+          "target": "m2-c3"
         }
       ]
     },

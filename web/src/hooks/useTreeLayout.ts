@@ -1,56 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import type { TreeIndex } from '@/lib/graph';
-import { layoutTree, type Positions } from '@/lib/layout';
+import { LEGIBLE_ZOOM, layoutTree, type TreeLayout, type Viewport } from '@/lib/layout';
 
-interface LayoutState {
-  key: string;
-  positions: Positions;
+const cache = new Map<string, TreeLayout>();
+
+/** Área útil de referencia: la ventana sin cabecera ni barra flotante (no cambia al abrir el Drawer). */
+const CHROME_HEIGHT = 200;
+const CHROME_WIDTH = 64;
+/** Redondeo del área para reutilizar layouts ante pequeños cambios de tamaño. */
+const BUCKET = 80;
+
+function referenceViewport(): Viewport {
+  const round = (v: number) => Math.max(BUCKET, Math.round(v / BUCKET) * BUCKET);
+  return { width: round(window.innerWidth - CHROME_WIDTH), height: round(window.innerHeight - CHROME_HEIGHT), minZoom: LEGIBLE_ZOOM };
 }
 
-export interface TreeLayout {
-  positions: Positions;
-  /** `false` mientras se muestra el layout previo y se calcula el del conjunto visible actual. */
-  isCurrent: boolean;
-}
-
-const cache = new Map<string, Positions>();
-
-function layoutKey(index: TreeIndex, visible: Set<string>): string {
-  return `${index.tree.id}|${[...visible].sort().join(',')}`;
-}
-
-/**
- * Calcula (o recupera de caché) el layout ELK del conjunto visible. Mientras se calcula un
- * nuevo layout se conserva el anterior del mismo árbol para evitar parpadeos.
- */
-export function useTreeLayout(index: TreeIndex, visible: Set<string>): TreeLayout | null {
-  const key = layoutKey(index, visible);
-  const [state, setState] = useState<LayoutState | null>(() => {
-    const cached = cache.get(key);
-    return cached ? { key, positions: cached } : null;
-  });
-
-  useEffect(() => {
-    const cached = cache.get(key);
-    if (cached) {
-      setState({ key, positions: cached });
-      return;
+/** Calcula (o recupera de caché) el layout compacto del conjunto visible. */
+export function useTreeLayout(index: TreeIndex, visible: Set<string>): TreeLayout {
+  const viewport = referenceViewport();
+  const key = `${index.tree.id}|${viewport.width}x${viewport.height}|${[...visible].sort().join(',')}`;
+  return useMemo(() => {
+    let layout = cache.get(key);
+    if (!layout) {
+      layout = layoutTree(index, visible, viewport);
+      cache.set(key, layout);
     }
-    let cancelled = false;
-    layoutTree(index, visible)
-      .then((positions) => {
-        cache.set(key, positions);
-        if (!cancelled) setState({ key, positions });
-      })
-      .catch((err: unknown) => {
-        console.error('Error de layout ELK', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // `key` resume `index` y `visible`.
-  }, [key]);
-
-  if (!state || !state.key.startsWith(`${index.tree.id}|`)) return null;
-  return { positions: state.positions, isCurrent: state.key === key };
+    return layout;
+    // `key` resume `index`, `visible` y el área de referencia.
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 }

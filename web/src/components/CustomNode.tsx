@@ -1,53 +1,59 @@
 import { memo, type MouseEvent } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { ChevronsDownUp, Plus, Target } from 'lucide-react';
-import { CENTRAL_SIZE, NODE_SIZE } from '@/lib/layout';
-import { organoBadge, organoShort, organoTooltip, SEVERIDAD_CLASSES, TYPE_CLASSES } from '@/lib/theme';
-import { cn, plural } from '@/lib/utils';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { CARD_METRICS, INLINE_BADGE, INLINE_CONTROLS, type CardKind } from '@/lib/cardMetrics';
+import { KIND_CLASSES, KIND_LABEL, KIND_SHORT, kindCount, kindOf } from '@/lib/theme';
+import { cn } from '@/lib/utils';
 import { useTreeActions } from '@/state/TreeStore';
-import { NODE_TYPE_LABEL, SEVERIDAD_LABEL, type ProblemFlowNode, type Severidad } from '@/types/tree';
-
-const SEMAFORO: Severidad[] = ['critica', 'moderada', 'baja'];
-
-export function SeverityLight({ severidad, dark = false }: { severidad: Severidad; dark?: boolean }) {
-  return (
-    <span
-      className={cn('flex items-center gap-1 rounded-full px-1.5 py-1', dark ? 'bg-white/10' : 'bg-slate-100')}
-      title={`Severidad ${SEVERIDAD_LABEL[severidad].toLowerCase()}`}
-      aria-label={`Severidad ${SEVERIDAD_LABEL[severidad]}`}
-    >
-      {SEMAFORO.map((s) => (
-        <span
-          key={s}
-          className={cn(
-            'size-2 rounded-full',
-            s === severidad ? SEVERIDAD_CLASSES[s].dot : dark ? 'bg-white/20' : 'bg-slate-300/70',
-          )}
-        />
-      ))}
-    </span>
-  );
-}
+import type { PanelFlowNode, ProblemFlowNode } from '@/types/tree';
 
 const handleClass = '!size-2 !min-h-0 !min-w-0 !border-0 !bg-slate-400 opacity-0';
 
-function CustomNodeComponent({ data }: NodeProps<ProblemFlowNode>) {
+function cardKind(level: number): CardKind {
+  if (level === 0) return 'central';
+  return Math.abs(level) === 1 ? 'direct' : 'deep';
+}
+
+/**
+ * Tarjeta compacta de la Vista general: alto ajustado al texto íntegro (ver lib/cardMetrics.ts),
+ * con su denominación (directa / indirecta / raíz; directo / indirecto / final) y el botón de
+ * colapso de su rama.
+ */
+function CustomNodeComponent({ data, width, height }: NodeProps<ProblemFlowNode>) {
   const { selectNode, toggleCollapse } = useTreeActions();
   const isCentral = data.branch === 'central';
-  const styles = TYPE_CLASSES[data.type];
-  const size = isCentral ? CENTRAL_SIZE : NODE_SIZE;
-  const childNoun = data.branch === 'causa' ? 'causa' : 'efecto';
+  const card = cardKind(data.level);
+  const m = CARD_METRICS[card];
+  const kind = kindOf(data.level);
+  const styles = KIND_CLASSES[kind];
 
   const onToggle = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); // no dispara onNodeClick (selección de la tarjeta)
     toggleCollapse(data.id);
   };
 
+  const childKind = kindOf(data.level + (data.branch === 'causa' ? 1 : -1));
+  const toggle = !isCentral && data.childCount > 0 && (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        'nodrag nopan ml-0.5 inline-flex h-4 shrink-0 items-center gap-0.5 rounded px-1 text-[10px] font-bold leading-none transition-colors',
+        data.isCollapsed ? styles.soft : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700',
+      )}
+      aria-expanded={!data.isCollapsed}
+      title={data.isCollapsed ? `Mostrar ${kindCount(childKind, data.childCount)}` : 'Colapsar rama'}
+    >
+      {data.isCollapsed ? <ChevronDown className="size-3" aria-hidden /> : <ChevronUp className="size-3" aria-hidden />}
+      {data.isCollapsed && data.descendantCount}
+    </button>
+  );
+
   return (
     <div
       role="button"
       tabIndex={data.isDimmed ? -1 : 0}
-      aria-label={`${NODE_TYPE_LABEL[data.type]}: ${data.label}`}
+      aria-label={`${KIND_LABEL[kind]}: ${data.label}`}
       aria-pressed={data.isSelected}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -55,12 +61,14 @@ function CustomNodeComponent({ data }: NodeProps<ProblemFlowNode>) {
           selectNode(data.id);
         }
       }}
-      style={{ height: size.height }}
+      style={{ width, height, padding: `${m.padY}px ${m.padX}px` }}
       className={cn(
-        'problem-card group relative flex cursor-pointer flex-col rounded-xl border border-l-4 p-3 shadow-md outline-none',
-        'transition-[opacity,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg',
+        'problem-card group relative flex cursor-pointer flex-col overflow-hidden border border-l-4 outline-none',
+        'transition-[opacity,box-shadow] duration-300 ease-out hover:shadow-lg',
         'focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2',
-        isCentral ? 'w-80 border-slate-700 bg-slate-900 text-white' : 'w-72 border-slate-200 bg-white text-slate-900',
+        isCentral
+          ? 'rounded-xl border-slate-700 bg-slate-900 text-white shadow-md'
+          : 'rounded-lg border-slate-200 bg-white text-slate-900 shadow-sm',
         styles.accent,
         data.isSelected && 'ring-2 ring-offset-2 ring-slate-900',
         data.isSearchHit && !data.isSelected && 'ring-2 ring-amber-400 ring-offset-1',
@@ -72,88 +80,79 @@ function CustomNodeComponent({ data }: NodeProps<ProblemFlowNode>) {
           <Handle id="efectos" type="source" position={Position.Top} className={handleClass} isConnectable={false} />
           <Handle id="causas" type="source" position={Position.Bottom} className={handleClass} isConnectable={false} />
         </>
-      ) : data.branch === 'causa' ? (
-        <>
-          <Handle id="in" type="target" position={Position.Top} className={handleClass} isConnectable={false} />
-          <Handle id="out" type="source" position={Position.Bottom} className={handleClass} isConnectable={false} />
-        </>
       ) : (
         <>
-          <Handle id="out" type="source" position={Position.Top} className={handleClass} isConnectable={false} />
-          <Handle id="in" type="target" position={Position.Bottom} className={handleClass} isConnectable={false} />
+          {/* `in`: enlace con el problema central (directos) o con la fila de nodos compartidos. */}
+          <Handle
+            id="in"
+            type="target"
+            position={data.branch === 'causa' ? Position.Top : Position.Bottom}
+            className={handleClass}
+            isConnectable={false}
+          />
+          {/* Enlaces del DAG fuera del panel: por el costado izquierdo. */}
+          <Handle id="side-out" type="source" position={Position.Left} style={{ top: '72%' }} className={handleClass} isConnectable={false} />
+          <Handle id="side-in" type="target" position={Position.Left} style={{ top: '28%' }} className={handleClass} isConnectable={false} />
         </>
       )}
 
-      {/* Cabecera semántica */}
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className={cn(
-            'max-w-[70%] truncate rounded-full px-2 py-0.5 text-xs font-semibold',
-            isCentral ? 'bg-amber-400 text-slate-900' : organoBadge(data.organo),
+      {card === 'deep' ? (
+        // Sin fila de cabecera: denominación al inicio de la primera línea y colapso flotando a la
+        // derecha (lib/cardMetrics.ts reserva ese espacio al medir).
+        <p style={{ fontSize: m.fontSize, lineHeight: `${m.lineHeight}px`, fontWeight: m.weight }} className="text-slate-800">
+          {toggle && (
+            <span className="float-right flex items-center" style={{ marginLeft: INLINE_CONTROLS.marginLeft, height: m.lineHeight }}>
+              {toggle}
+            </span>
           )}
-          title={organoTooltip(data.organo)}
-        >
-          {organoShort(data.organo)}
-        </span>
-        <SeverityLight severidad={data.severidad} dark={isCentral} />
-      </div>
-      <p className={cn('mt-2 text-[10px] font-semibold uppercase tracking-wider', styles.eyebrow)}>
-        {NODE_TYPE_LABEL[data.type]}
-      </p>
-
-      {/* Cuerpo */}
-      <p
-        className={cn(
-          'mt-0.5 line-clamp-3 leading-snug',
-          isCentral ? 'text-base font-semibold tracking-tight' : 'text-sm font-medium text-slate-800',
-        )}
-      >
-        {data.label}
-      </p>
-
-      {/* Pie interactivo */}
-      <div className="mt-auto flex items-center justify-between pt-2">
-        {isCentral ? (
-          <span className="flex items-center gap-1.5 text-xs text-slate-300">
-            <Target className="size-3.5" aria-hidden />
-            Problema analizado
-          </span>
-        ) : data.childCount > 0 ? (
-          <button
-            type="button"
-            onClick={onToggle}
-            className={cn(
-              'nodrag nopan inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors',
-              data.isCollapsed
-                ? cn('border-transparent', styles.soft, 'hover:brightness-95')
-                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
-            )}
-            aria-expanded={!data.isCollapsed}
-            title={data.isCollapsed ? `Mostrar ${plural(data.descendantCount, 'nodo')} dependientes` : 'Colapsar rama'}
+          <span
+            className={cn('uppercase', styles.eyebrow)}
+            style={{
+              fontSize: INLINE_BADGE.fontSize,
+              fontWeight: INLINE_BADGE.weight,
+              letterSpacing: INLINE_BADGE.letterSpacing,
+              marginRight: INLINE_BADGE.marginRight,
+            }}
           >
-            {data.isCollapsed ? (
-              <>
-                <Plus className="size-3.5" aria-hidden />
-                {plural(data.childCount, childNoun)}
-              </>
-            ) : (
-              <>
-                <ChevronsDownUp className="size-3.5" aria-hidden />
-                colapsar
-              </>
-            )}
-          </button>
-        ) : (
-          <span className="text-[11px] text-slate-400">
-            {data.branch === 'causa' ? 'Causa raíz' : 'Efecto final'}
+            {KIND_SHORT[kind]}
           </span>
-        )}
-        {!isCentral && data.isCollapsed && data.descendantCount > data.childCount && (
-          <span className="text-[11px] text-slate-400">{data.descendantCount} en la rama</span>
-        )}
-      </div>
+          {data.description}
+        </p>
+      ) : (
+        <>
+          {/* Cabecera de una línea */}
+          <div className="flex min-w-0 shrink-0 items-center gap-1.5" style={{ height: m.header }}>
+            <span className={cn('truncate text-[10px] font-bold uppercase tracking-wider', styles.eyebrow)}>{KIND_LABEL[kind]}</span>
+            <span className="ml-auto" />
+            {toggle}
+          </div>
+
+          {/* Cuerpo: texto íntegro del insumo (legible sin abrir el Drawer). */}
+          <p
+            style={{ marginTop: m.gap, fontSize: m.fontSize, lineHeight: `${m.lineHeight}px`, fontWeight: m.weight }}
+            className={isCentral ? 'tracking-tight' : 'text-slate-800'}
+          >
+            {data.description}
+          </p>
+        </>
+      )}
     </div>
   );
 }
 
 export const CustomNode = memo(CustomNodeComponent);
+
+/** Fondo de un panel: agrupa una causa (o efecto) directa con toda su descendencia. */
+function PanelNodeComponent({ data }: NodeProps<PanelFlowNode>) {
+  return (
+    <div
+      className={cn(
+        'size-full rounded-xl border border-dashed transition-opacity duration-300',
+        data.side === 'causa' ? 'border-orange-200 bg-orange-50/70' : 'border-sky-200 bg-sky-50/70',
+        data.isDimmed && 'opacity-30',
+      )}
+    />
+  );
+}
+
+export const PanelNode = memo(PanelNodeComponent);

@@ -93,18 +93,9 @@ export type ProblemNodeData = {
 };
 
 export type ProblemFlowNode = Node<ProblemNodeData, 'problem'>;
+
+/** Fondo de la Vista general que agrupa una causa (o efecto) directa con su descendencia. */
+export type PanelNodeData = { side: 'causa' | 'efecto'; isDimmed: boolean };
+export type PanelFlowNode = Node<PanelNodeData, 'panel'>;
+export type FlowNode = ProblemFlowNode | PanelFlowNode;
 export type ProblemFlowEdge = Edge;
-
-export const NODE_TYPE_LABEL: Record<NodeType, string> = {
-  efecto_indirecto: 'Efecto indirecto',
-  efecto_directo: 'Efecto directo',
-  problema_central: 'Problema central',
-  causa_directa: 'Causa directa',
-  causa_indirecta: 'Causa indirecta',
-};
-
-export const SEVERIDAD_LABEL: Record<Severidad, string> = {
-  critica: 'Crítica',
-  moderada: 'Moderada',
-  baja: 'Baja',
-};

@@ -21,7 +21,6 @@ export interface FocusRequest {
 interface TreeSnapshot {
   collapsed: Set<string>;
   selectedId: string | null;
-  organoFilter: string | null;
   ejeFilter: string | null;
 }
 
@@ -39,7 +38,6 @@ type Action =
   | { type: 'collapseAll' }
   | { type: 'selectNode'; id: string | null }
   | { type: 'focusNode'; treeId: string; id: string }
-  | { type: 'setOrganoFilter'; organo: string | null }
   | { type: 'setEjeFilter'; eje: string | null }
   | { type: 'fitView' }
   | { type: 'reset' };
@@ -57,38 +55,39 @@ export function getIndex(treeId: string): TreeIndex {
   return index;
 }
 
-function initialSnapshot(treeId: string): TreeSnapshot {
-  return { collapsed: initialCollapsed(getIndex(treeId)), selectedId: null, organoFilter: null, ejeFilter: null };
+/** La Vista general parte expandida: todos los cuadros visibles, legibles a escala real. */
+function initialSnapshot(): TreeSnapshot {
+  return { collapsed: new Set(), selectedId: null, ejeFilter: null };
 }
 
 function freshState(treeId: string, seq: number, saved: ReadonlyMap<string, TreeSnapshot> = new Map()): State {
-  return { treeId, ...initialSnapshot(treeId), focus: { seq: seq + 1, ids: null }, saved };
+  return { treeId, ...initialSnapshot(), focus: { seq: seq + 1, ids: null }, saved };
 }
 
 /** Cambia de árbol guardando la exploración actual y restaurando la del destino, si existe. */
 function switchTree(state: State, treeId: string): State {
   if (treeId === state.treeId) return state;
   const saved = new Map(state.saved);
-  const { collapsed, selectedId, organoFilter, ejeFilter } = state;
-  saved.set(state.treeId, { collapsed, selectedId, organoFilter, ejeFilter });
-  const restored = saved.get(treeId) ?? initialSnapshot(treeId);
+  const { collapsed, selectedId, ejeFilter } = state;
+  saved.set(state.treeId, { collapsed, selectedId, ejeFilter });
+  const restored = saved.get(treeId) ?? initialSnapshot();
   saved.delete(treeId);
   const ids = restored.selectedId ? [...causalPath(getIndex(treeId), restored.selectedId)] : null;
   return { treeId, ...restored, saved, focus: { seq: state.focus.seq + 1, ids } };
 }
 
-function matchingIds(index: TreeIndex, organo: string | null, eje: string | null): string[] {
+function matchingIds(index: TreeIndex, eje: string | null): string[] {
   return index.tree.nodes
-    .filter((n) => (organo === null || n.organo === organo) && (eje === null || n.ejeTematico === eje))
+    .filter((n) => eje === null || n.ejeTematico === eje)
     .map((n) => n.id);
 }
 
 /** Aplica filtros: revela los nodos coincidentes y encuadra la cámara sobre ellos. */
-function withFilters(state: State, organo: string | null, eje: string | null): State {
+function withFilters(state: State, eje: string | null): State {
   const index = getIndex(state.treeId);
-  const base = { ...state, organoFilter: organo, ejeFilter: eje, selectedId: null };
-  if (organo === null && eje === null) return { ...base, focus: { seq: state.focus.seq + 1, ids: null } };
-  const ids = matchingIds(index, organo, eje);
+  const base = { ...state, ejeFilter: eje, selectedId: null };
+  if (eje === null) return { ...base, focus: { seq: state.focus.seq + 1, ids: null } };
+  const ids = matchingIds(index, eje);
   return { ...base, collapsed: reveal(index, state.collapsed, ids), focus: { seq: state.focus.seq + 1, ids } };
 }
 
@@ -127,17 +126,14 @@ function reducer(state: State, action: Action): State {
       const idx = getIndex(action.treeId);
       return {
         ...base,
-        organoFilter: null,
         ejeFilter: null,
         collapsed: reveal(idx, base.collapsed, [action.id]),
         selectedId: action.id,
         focus: { seq: base.focus.seq + 1, ids: [...causalPath(idx, action.id)] },
       };
     }
-    case 'setOrganoFilter':
-      return withFilters(state, action.organo, state.ejeFilter);
     case 'setEjeFilter':
-      return withFilters(state, state.organoFilter, action.eje);
+      return withFilters(state, action.eje);
     case 'fitView':
       return { ...state, focus: nextFocus(null) };
     case 'reset':
@@ -153,7 +149,6 @@ export interface TreeActions {
   /** `onNodeSelect`: abre el Drawer y aísla la ruta causal del nodo. */
   selectNode: (id: string | null) => void;
   focusNode: (treeId: string, id: string) => void;
-  setOrganoFilter: (organo: string | null) => void;
   setEjeFilter: (eje: string | null) => void;
   fitView: () => void;
   reset: () => void;
@@ -187,7 +182,6 @@ export function TreeStoreProvider({ initialTreeId, children }: TreeStoreProvider
       collapseAll: () => dispatch({ type: 'collapseAll' }),
       selectNode: (id) => dispatch({ type: 'selectNode', id }),
       focusNode: (treeId, id) => dispatch({ type: 'focusNode', treeId, id }),
-      setOrganoFilter: (organo) => dispatch({ type: 'setOrganoFilter', organo }),
       setEjeFilter: (eje) => dispatch({ type: 'setEjeFilter', eje }),
       fitView: () => dispatch({ type: 'fitView' }),
       reset: () => dispatch({ type: 'reset' }),
@@ -202,8 +196,8 @@ export function TreeStoreProvider({ initialTreeId, children }: TreeStoreProvider
     if (state.selectedId && state.selectedId !== index.centralId) {
       const path = causalPath(index, state.selectedId);
       for (const id of visible) if (!path.has(id)) dimmed.add(id);
-    } else if (state.organoFilter !== null || state.ejeFilter !== null) {
-      const match = new Set(matchingIds(index, state.organoFilter, state.ejeFilter));
+    } else if (state.ejeFilter !== null) {
+      const match = new Set(matchingIds(index, state.ejeFilter));
       for (const id of visible) if (!match.has(id) && id !== index.centralId) dimmed.add(id);
     }
     return { ...state, index, visible, dimmed };

@@ -1,11 +1,10 @@
 import { useEffect, type ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, BarChart3, FileText, Landmark, Route, ScrollText, X } from 'lucide-react';
-import { SeverityLight } from '@/components/CustomNode';
 import { ancestorsOf } from '@/lib/graph';
-import { organoBadge, organoTooltip, SEVERIDAD_CLASSES, TYPE_CLASSES, TYPE_COLOR } from '@/lib/theme';
+import { KIND_CLASSES, KIND_COLOR, KIND_LABEL, kindCount, kindOf } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import { useTreeActions, useTreeView } from '@/state/TreeStore';
-import { NODE_TYPE_LABEL, SEVERIDAD_LABEL, type NodeMetadata } from '@/types/tree';
+import type { NodeMetadata } from '@/types/tree';
 
 function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
@@ -27,7 +26,7 @@ function NodeLink({ node, onSelect }: { node: NodeMetadata; onSelect: (id: strin
         onClick={() => onSelect(node.id)}
         className="flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-50"
       >
-        <span className="mt-1.5 size-2 shrink-0 rounded-full" style={{ backgroundColor: TYPE_COLOR[node.type] }} />
+        <span className="mt-1.5 size-2 shrink-0 rounded-full" style={{ backgroundColor: KIND_COLOR[kindOf(node.level)] }} />
         <span className="leading-snug">{node.label}</span>
       </button>
     </li>
@@ -36,16 +35,20 @@ function NodeLink({ node, onSelect }: { node: NodeMetadata; onSelect: (id: strin
 
 /** Lectura del rol del nodo en la cadena causal (el texto íntegro del insumo es el título). */
 function diagnosis(node: NodeMetadata, parents: (NodeMetadata | undefined)[], dependents: number): string {
-  const tipo = NODE_TYPE_LABEL[node.type];
+  const tipo = KIND_LABEL[kindOf(node.level)];
   const destinos = parents.filter((p): p is NodeMetadata => p !== undefined).map((p) => `«${p.label}»`);
   if (node.level === 0) {
     return 'Estado negativo sobre la entidad o el bien público que articula el árbol: las causas lo explican y los efectos describen sus externalidades.';
   }
   if (node.level > 0) {
-    const raiz = dependents === 0 ? ' Es una causa raíz: no se desagrega en factores más profundos.' : ` Se explica a su vez por ${dependents} factor(es) más profundo(s).`;
+    const raiz = dependents === 0
+      ? ' No se desagrega en factores más profundos.'
+      : ` Se explica a su vez por ${kindCount(kindOf(node.level + 1), dependents)}.`;
     return `${tipo} que contribuye a ${destinos.join(' y ')}.${raiz}`;
   }
-  const fin = dependents === 0 ? ' Es una externalidad final del árbol.' : ` Desencadena ${dependents} efecto(s) adicional(es).`;
+  const fin = dependents === 0
+    ? ' No desencadena efectos posteriores en el árbol.'
+    : ` Desencadena ${kindCount(kindOf(node.level - 1), dependents)}.`;
   return `${tipo} originado en ${destinos.join(' y ')}.${fin}`;
 }
 
@@ -85,7 +88,7 @@ export function NodeDrawer() {
     >
       {node && (
         <div className="flex h-full w-[min(420px,100vw)] flex-col">
-          <header className="relative px-5 pb-4 pt-5" style={{ borderTop: `4px solid ${TYPE_COLOR[node.type]}` }}>
+          <header className="relative px-5 pb-4 pt-5" style={{ borderTop: `4px solid ${KIND_COLOR[kindOf(node.level)]}` }}>
             <button
               type="button"
               onClick={() => selectNode(null)}
@@ -94,38 +97,12 @@ export function NodeDrawer() {
             >
               <X className="size-4" />
             </button>
-            <p className={cn('text-[11px] font-semibold uppercase tracking-wider', TYPE_CLASSES[node.type].eyebrow)}>
-              {NODE_TYPE_LABEL[node.type]} · nivel {node.level}
+            <p className={cn('text-[11px] font-semibold uppercase tracking-wider', KIND_CLASSES[kindOf(node.level)].eyebrow)}>
+              {KIND_LABEL[kindOf(node.level)]}
             </p>
             <h2 className="mt-1 pr-8 text-lg font-semibold leading-snug text-slate-900">{node.description}</h2>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span
-                className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', organoBadge(node.organo))}
-                title={organoTooltip(node.organo)}
-              >
-                {node.organo}
-              </span>
-              <span
-                className={cn(
-                  'flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-xs font-medium ring-1',
-                  SEVERIDAD_CLASSES[node.severidad].text,
-                  SEVERIDAD_CLASSES[node.severidad].ring,
-                )}
-              >
-                <SeverityLight severidad={node.severidad} />
-                {SEVERIDAD_LABEL[node.severidad]}
-              </span>
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{node.ejeTematico}</span>
-              <span
-                className="text-[11px] text-slate-400"
-                title={
-                  node.severidad_manual
-                    ? 'Severidad revisada por el equipo técnico; se conserva en futuras re-extracciones.'
-                    : 'Severidad estimada por la heurística de extracción (priorización relativa dentro del árbol).'
-                }
-              >
-                {node.severidad_manual ? 'Severidad ajustada manualmente' : 'Severidad estimada'}
-              </span>
             </div>
           </header>
 
