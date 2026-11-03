@@ -2510,27 +2510,15 @@
           "type": "causa_indirecta",
           "level": 2,
           "label": "Débil gobernanza de la información ambiental…",
-          "description": "Débil gobernanza de la información ambiental debido a la limitada aplicación de metodologías para su gestión.",
+          "description": "Débil gobernanza de la información ambiental debido a la limitada aplicación de metodologías para su gestión. No existe una caracterización de la información requerida para la gestión ambiental de los diferentes actores",
           "organo": "SG",
           "ejeTematico": "Tecnológico y de información",
           "severidad": "moderada",
           "severidad_manual": false,
-          "fuente": "Árbol Mesa 6 - Modernización TI.docx · pág. 1 · ítem 1"
+          "fuente": "Árbol Mesa 6 - Modernización TI.docx · pág. 1"
         },
         {
           "id": "m6-c1-4",
-          "type": "causa_indirecta",
-          "level": 2,
-          "label": "No existe una caracterización de la información requerida…",
-          "description": "No existe una caracterización de la información requerida para la gestión ambiental de los diferentes actores",
-          "organo": "SG",
-          "ejeTematico": "Tecnológico y de información",
-          "severidad": "baja",
-          "severidad_manual": false,
-          "fuente": "Árbol Mesa 6 - Modernización TI.docx · pág. 1 · ítem 2"
-        },
-        {
-          "id": "m6-c1-5",
           "type": "causa_indirecta",
           "level": 2,
           "label": "Aplicativos coexisten de manera independiente y sin articulación",
@@ -2542,7 +2530,7 @@
           "fuente": "Árbol Mesa 6 - Modernización TI.docx · pág. 1"
         },
         {
-          "id": "m6-c1-6",
+          "id": "m6-c1-5",
           "type": "causa_indirecta",
           "level": 2,
           "label": "Limitadas capacidades de infraestructura tecnológica, seguridad de la información…",
@@ -2554,7 +2542,7 @@
           "fuente": "Árbol Mesa 6 - Modernización TI.docx · pág. 1"
         },
         {
-          "id": "m6-c1-7",
+          "id": "m6-c1-6",
           "type": "causa_indirecta",
           "level": 2,
           "label": "Limitada interoperabilidad de los sistemas funcionales del SNGA…",
@@ -2632,11 +2620,6 @@
         {
           "id": "m6-c1-6__m6-c1",
           "source": "m6-c1-6",
-          "target": "m6-c1"
-        },
-        {
-          "id": "m6-c1-7__m6-c1",
-          "source": "m6-c1-7",
           "target": "m6-c1"
         },
         {

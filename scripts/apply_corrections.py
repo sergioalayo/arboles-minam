@@ -26,6 +26,27 @@ RELOCATE = [
     },
 ]
 
+# Une nodos hermanos en uno solo: `keep` conserva el ID y `merge` queda absorbido. `renumber` cierra
+# el hueco en la numeración. La presencia del texto de `merge` en un nodo independiente indica que
+# la corrección está pendiente (tras aplicarla, su ID lo ocupa otro nodo).
+MERGE = [
+    {
+        'tree': 'm6',
+        'keep': 'm6-c1-3',
+        'merge': 'm6-c1-4',
+        'merge_text': 'No existe una caracterización de la información requerida',
+        'description': 'Débil gobernanza de la información ambiental debido a la limitada aplicación de '
+                       'metodologías para su gestión. No existe una caracterización de la información '
+                       'requerida para la gestión ambiental de los diferentes actores',
+        'fuente': 'Árbol Mesa 6 - Modernización TI.docx · pág. 1',
+        'renumber': {'m6-c1-5': 'm6-c1-4', 'm6-c1-6': 'm6-c1-5', 'm6-c1-7': 'm6-c1-6'},
+        'reason': 'Mesa 6: la causa indirecta 3 de la causa directa 1 es una sola, con los dos ítems de la '
+                  'misma caja del insumo («Débil gobernanza…» y «No existe una caracterización…»).',
+    },
+]
+
+SEVERITY_RANK = {'baja': 0, 'moderada': 1, 'critica': 2}
+
 
 def node_type(level: int) -> str:
     if level == 0:
@@ -41,9 +62,36 @@ def edge(parent: str, child: str, level: int) -> dict:
     return {'id': f'{source}__{target}', 'source': source, 'target': target}
 
 
-def apply(trees: list[dict]) -> list[str]:
+def apply_merges(by_id: dict[str, dict]) -> list[str]:
     applied: list[str] = []
+    for fix in MERGE:
+        tree = by_id.get(fix['tree'])
+        if tree is None:
+            continue
+        nodes = {n['id']: n for n in tree['nodes']}
+        keep, merged = nodes.get(fix['keep']), nodes.get(fix['merge'])
+        if keep is None or merged is None or not merged['description'].startswith(fix['merge_text']):
+            continue  # ya aplicada (o el nodo cambió en el insumo)
+        keep.update(description=fix['description'], fuente=fix['fuente'])
+        if SEVERITY_RANK[merged['severidad']] > SEVERITY_RANK[keep['severidad']]:
+            keep['severidad'] = merged['severidad']
+        tree['nodes'].remove(merged)
+        tree['edges'] = [e for e in tree['edges'] if fix['merge'] not in (e['source'], e['target'])]
+        # El nodo absorbido ya no existe: renumerar en orden no pisa ningún ID vigente.
+        for old, new in fix['renumber'].items():
+            nodes[old]['id'] = new
+            for e in tree['edges']:
+                for k in ('source', 'target'):
+                    if e[k] == old:
+                        e[k] = new
+                e['id'] = f"{e['source']}__{e['target']}"
+        applied.append(f"{fix['tree']}: {fix['merge']} → {fix['keep']} ({fix['reason']})")
+    return applied
+
+
+def apply(trees: list[dict]) -> list[str]:
     by_id = {t['id']: t for t in trees}
+    applied = apply_merges(by_id)
     for fix in RELOCATE:
         tree = by_id.get(fix['tree'])
         if tree is None:
