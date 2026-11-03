@@ -232,7 +232,7 @@ function BranchCard({ node, index, to, focus = false, position, parentId }: Bran
         {KIND_LABEL[kind]}
         {position && <span className="text-slate-400"> · {position}</span>}
       </p>
-      <p className={cn('mt-1 leading-snug text-slate-800', focus ? 'text-[clamp(1.05rem,0.8rem+0.6vw,1.4rem)] font-semibold' : 'text-sm font-medium')}>
+      <p className={cn('mt-1 whitespace-pre-line leading-snug text-slate-800', focus ? 'text-[clamp(1.05rem,0.8rem+0.6vw,1.4rem)] font-semibold' : 'text-sm font-medium')}>
         {node.description}
       </p>
       <OtherParents node={node} index={index} parentId={parentId} focus={focus} />

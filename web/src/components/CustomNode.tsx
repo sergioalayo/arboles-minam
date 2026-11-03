@@ -98,7 +98,7 @@ function CustomNodeComponent({ data, width, height }: NodeProps<ProblemFlowNode>
       {card === 'deep' ? (
         // Sin fila de cabecera: denominación al inicio de la primera línea y colapso flotando a la
         // derecha (lib/cardMetrics.ts reserva ese espacio al medir).
-        <p style={{ fontSize: m.fontSize, lineHeight: `${m.lineHeight}px`, fontWeight: m.weight }} className="text-slate-800">
+        <p style={{ fontSize: m.fontSize, lineHeight: `${m.lineHeight}px`, fontWeight: m.weight }} className="whitespace-pre-line text-slate-800">
           {toggle && (
             <span className="float-right flex items-center" style={{ marginLeft: INLINE_CONTROLS.marginLeft, height: m.lineHeight }}>
               {toggle}
@@ -133,7 +133,7 @@ function CustomNodeComponent({ data, width, height }: NodeProps<ProblemFlowNode>
           {/* Cuerpo: texto íntegro del insumo (legible sin abrir el Drawer). */}
           <p
             style={{ marginTop: m.gap, fontSize: m.fontSize, lineHeight: `${m.lineHeight}px`, fontWeight: m.weight }}
-            className={isCentral ? 'tracking-tight' : 'text-slate-800'}
+            className={cn('whitespace-pre-line', isCentral ? 'tracking-tight' : 'text-slate-800')}
           >
             {data.description}
           </p>

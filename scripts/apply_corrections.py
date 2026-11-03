@@ -35,8 +35,8 @@ MERGE = [
         'keep': 'm6-c1-3',
         'merge': 'm6-c1-4',
         'merge_text': 'No existe una caracterización de la información requerida',
-        'description': 'Débil gobernanza de la información ambiental debido a la limitada aplicación de '
-                       'metodologías para su gestión. No existe una caracterización de la información '
+        'description': '1. Débil gobernanza de la información ambiental debido a la limitada aplicación de '
+                       'metodologías para su gestión.\n2. No existe una caracterización de la información '
                        'requerida para la gestión ambiental de los diferentes actores',
         'fuente': 'Árbol Mesa 6 - Modernización TI.docx · pág. 1',
         'renumber': {'m6-c1-5': 'm6-c1-4', 'm6-c1-6': 'm6-c1-5', 'm6-c1-7': 'm6-c1-6'},
@@ -70,9 +70,15 @@ def apply_merges(by_id: dict[str, dict]) -> list[str]:
             continue
         nodes = {n['id']: n for n in tree['nodes']}
         keep, merged = nodes.get(fix['keep']), nodes.get(fix['merge'])
-        if keep is None or merged is None or not merged['description'].startswith(fix['merge_text']):
-            continue  # ya aplicada (o el nodo cambió en el insumo)
+        if keep is None:
+            continue
+        reworded = keep['description'] != fix['description']
         keep.update(description=fix['description'], fuente=fix['fuente'])
+        if merged is None or not merged['description'].startswith(fix['merge_text']):
+            # Ya unidos: solo se actualiza la redacción declarada, si cambió.
+            if reworded:
+                applied.append(f"{fix['tree']}: {fix['keep']} (redacción actualizada)")
+            continue
         if SEVERITY_RANK[merged['severidad']] > SEVERITY_RANK[keep['severidad']]:
             keep['severidad'] = merged['severidad']
         tree['nodes'].remove(merged)

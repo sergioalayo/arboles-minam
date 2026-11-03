@@ -48,7 +48,10 @@ function textWidth(c: CanvasRenderingContext2D, text: string, weight: number, si
   return c.measureText(text).width;
 }
 
-/** Líneas que ocupa `text` con ajuste por palabras; la primera línea pierde `firstReserve` px. */
+/**
+ * Líneas que ocupa `text` con ajuste por palabras; la primera línea pierde `firstReserve` px.
+ * Los saltos de línea del texto se respetan (las tarjetas usan `whitespace-pre-line`).
+ */
 function countLines(text: string, kind: CardKind, width: number, firstReserve: number): number {
   const key = `${kind}|${width}|${firstReserve}|${text}`;
   const cached = lineCache.get(key);
@@ -61,18 +64,27 @@ function countLines(text: string, kind: CardKind, width: number, firstReserve: n
     // Pequeño margen: el redondeo del navegador puede partir una línea antes que el canvas.
     const max = width * 0.96;
     let limit = max - firstReserve;
-    let current = '';
-    for (const word of text.split(/\s+/).filter(Boolean)) {
-      const candidate = current ? `${current} ${word}` : word;
-      if (c.measureText(candidate).width <= limit || (!current && limit === max)) current = candidate;
-      else {
+    text.split('\n').forEach((paragraph, i) => {
+      if (i > 0) {
         lines++;
-        current = word;
         limit = max;
       }
-    }
+      let current = '';
+      for (const word of paragraph.split(/\s+/).filter(Boolean)) {
+        const candidate = current ? `${current} ${word}` : word;
+        if (c.measureText(candidate).width <= limit || (!current && limit === max)) current = candidate;
+        else {
+          lines++;
+          current = word;
+          limit = max;
+        }
+      }
+    });
   } else {
-    lines = Math.ceil((text.length * m.fontSize * 0.55 + firstReserve) / width);
+    lines = text.split('\n').reduce(
+      (sum, paragraph, i) => sum + Math.max(1, Math.ceil((paragraph.length * m.fontSize * 0.55 + (i === 0 ? firstReserve : 0)) / width)),
+      0,
+    );
   }
   lineCache.set(key, lines);
   return lines;

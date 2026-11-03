@@ -35,7 +35,7 @@ export interface NodeMetadata {
   type: NodeType;
   level: number;
   label: string;              // Título corto (máx. 8-10 palabras) para la card
-  description: string;        // Sustento diagnóstico completo para el Drawer
+  description: string;        // Sustento diagnóstico completo para el Drawer (admite saltos de línea `\n`)
   organo: string;             // Unidad orgánica (DGRS, DGOTA, OEFA, SERNANP, etc.)
   ejeTematico: string;        // Eje ambiental o de modernización
   evidencia?: string;         // Cifras, porcentajes, brechas o artículos normativos
