@@ -57,9 +57,10 @@ MESAS: dict[str, dict[str, str]] = {
                       'Ambiental'},
     '3': {'tema': 'Ciencia e información ambiental', 'organo': TRANSVERSAL, 'mesa': '3',
           'eje': 'Ciencia, información ambiental y gestión del riesgo',
-          'problema': 'Limitada articulación y aprovechamiento de las capacidades técnico-científicas, '
+          'problema': 'Limitada articulación y aprovechamiento de las capacidades técnico científicas, '
                       'tecnológicas y de información del Sector Ambiental que aporten a las políticas públicas '
-                      'y a la toma de decisiones en gestión ambiental y gestión del riesgo de desastres'},
+                      'y a la toma de decisiones en gestión ambiental, del riesgo de desastres y del cambio '
+                      'climático'},
     '4': {'tema': 'Brechas sectoriales', 'organo': 'OGPP', 'mesa': '4',
           'eje': 'Cierre de brechas sectoriales',
           'problema': 'Débil asociación entre los servicios vinculados a las brechas del sector Ambiente y '
