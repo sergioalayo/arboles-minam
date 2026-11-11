@@ -149,6 +149,7 @@ function ProblemSummary({ group, treeId, single }: { group: MesaGroup; treeId: s
         <p className={cn('mt-2 font-semibold leading-snug', single ? 'text-[clamp(1.1rem,0.7rem+1vw,1.75rem)]' : 'text-[clamp(1rem,0.7rem+0.6vw,1.3rem)]')}>
           {index.tree.problemaCentral}
         </p>
+        <ProblemNote note={index.tree.notaProblemaCentral} />
       </div>
       <Stem />
       <CountBand side="causa" direct={directCauses} deeper={deeper('causa')} large={single} />
@@ -292,7 +293,13 @@ function CardGroup({ side, title, children }: { side: 'causa' | 'efecto'; title:
 
 const CARD_SLOT = 'flex min-w-[11.5rem] max-w-[19rem] flex-1 basis-0 flex-col';
 
-function ProblemBox({ text, compact = false, to }: { text: string; compact?: boolean; to?: ExploreRoute }) {
+/** Nota al pie del problema central (alcance de un término marcado con «*»). */
+function ProblemNote({ note, className }: { note: string | undefined; className?: string }) {
+  if (!note) return null;
+  return <span className={cn('mt-3 block border-t border-white/15 pt-2.5 text-xs font-normal leading-relaxed text-slate-300', className)}>{note}</span>;
+}
+
+function ProblemBox({ text, note, compact = false, to }: { text: string; note?: string | undefined; compact?: boolean; to?: ExploreRoute }) {
   const box = (
     <span className={cn('mx-auto block w-full rounded-2xl bg-slate-900 text-white shadow-lg', compact ? 'max-w-2xl px-4 py-2.5' : 'max-w-4xl p-5 sm:p-6')}>
       <span className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-300">
@@ -306,6 +313,7 @@ function ProblemBox({ text, compact = false, to }: { text: string; compact?: boo
       >
         {text}
       </span>
+      {!compact && <ProblemNote note={note} className="text-left" />}
     </span>
   );
   if (!to) return box;
@@ -336,7 +344,7 @@ export function ProblemScene({ route }: { route: ExploreRoute & { treeId: string
         ))}
       </CardGroup>
       <Stem />
-      <ProblemBox text={index.tree.problemaCentral} />
+      <ProblemBox text={index.tree.problemaCentral} note={index.tree.notaProblemaCentral} />
       <Stem />
       <CardGroup side="causa" title={`${causes.length} causas directas`}>
         {causes.map((n) => (

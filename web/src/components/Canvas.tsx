@@ -234,7 +234,7 @@ export function Canvas({ searchQuery, drawerOpen }: CanvasProps) {
         maskColor="rgba(241, 245, 249, 0.7)"
         className="!rounded-lg !border !border-slate-200 !shadow-md"
       />
-      <Legend />
+      <Legend note={index.tree.notaProblemaCentral} />
     </ReactFlow>
   );
 }

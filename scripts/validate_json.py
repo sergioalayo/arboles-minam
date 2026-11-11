@@ -22,6 +22,7 @@ NODE_TYPES = {'efecto_indirecto', 'efecto_directo', 'problema_central', 'causa_d
 SEVERIDADES = {'critica', 'moderada', 'baja'}
 TREE_KEYS = {'id': str, 'mesa': str, 'eje': str, 'problemaCentral': str, 'titulo': str, 'descripcionGeneral': str, 'archivoOrigen': str,
              'problemaCentralId': str, 'nodes': list, 'edges': list}
+TREE_OPT = {'notaProblemaCentral': str}
 NODE_REQ = {'id': str, 'type': str, 'level': int, 'label': str, 'description': str, 'organo': str,
             'ejeTematico': str, 'severidad': str, 'severidad_manual': bool, 'fuente': str}
 NODE_OPT = {'evidencia': str, 'textoOriginal': str, 'isCollapsed': bool}
@@ -59,7 +60,7 @@ def validate(root: dict) -> tuple[list[str], list[str]]:
     tree_ids: Counter = Counter()
     for t_i, tree in enumerate(root['arboles']):
         tw = f'arboles[{t_i}]'
-        check_fields(tree, TREE_KEYS, {}, tw, errors)
+        check_fields(tree, TREE_KEYS, TREE_OPT, tw, errors)
         if errors:
             continue
         tw = f'árbol {tree["id"]}'

@@ -41,6 +41,7 @@ export interface ProblemTree {
   mesa: string; // Número oficial de mesa temática ("1" … "10", "11.1", "11.2")
   eje: string; // Eje temático oficial de la mesa
   problemaCentral: string; // Redacción oficial del problema central (Vista Panorámica)
+  notaProblemaCentral?: string; // Nota al pie del problema central (p. ej. alcance de un término marcado con «*»)
   titulo: string;
   descripcionGeneral: string;
   archivoOrigen: string;

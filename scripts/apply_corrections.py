@@ -8,8 +8,12 @@ vigente con `python scripts/apply_corrections.py`. Son idempotentes.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from classify import make_label  # noqa: E402
 
 DATA = Path(__file__).resolve().parent.parent / 'data' / 'arboles.json'
 
@@ -45,7 +49,42 @@ MERGE = [
     },
 ]
 
+# Elimina un nodo duplicado (y sus vínculos) y renumera a sus hermanos. `text` identifica el nodo a
+# quitar: si su ID ya lo ocupa otro texto, la corrección se considera aplicada.
+REMOVE = [
+    {
+        'tree': 'm5',
+        'node': 'm5-c3-1',
+        'text': 'Planificación y priorización insuficientemente articuladas',
+        'renumber': {'m5-c3-2': 'm5-c3-1', 'm5-c3-3': 'm5-c3-2'},
+        'reason': 'Mesa 5: la causa directa 3 tiene dos causas indirectas; «Planificación y priorización '
+                  'insuficientemente articuladas…» corresponde solo a la causa directa 4 (CI 4.2).',
+    },
+]
+
+# Redacción validada por la mesa (causas_mesa_5.xlsx); reemplaza el texto extraído del insumo.
+# Se aplica después de REMOVE, con los IDs ya renumerados.
+REWORD = {
+    'm5': {
+        'm5-c1-2': 'Limitaciones en la programación y planificación',
+        'm5-c2-1': 'Modelos organizacionales presentan limitaciones para responder a la naturaleza y escala '
+                   'de las intervenciones',
+        'm5-c2-2': 'Estructuras y dotación de personal que no corresponden con las funciones y necesidades '
+                   'operativas',
+        'm5-c2-3': 'Limitaciones en la autonomía y capacidad operativa de determinadas intervenciones',
+        'm5-c3-1': 'Limitaciones en la programación y ejecución de inversiones y en la disponibilidad de '
+                   'expedientes técnicos y terrenos saneados',
+        'm5-c3-2': 'Debilidades en el seguimiento de inversiones, sistemas de información y sostenibilidad '
+                   'financiera',
+        'm5-c4-2': 'Planificación y priorización insuficientemente articuladas con las brechas ambientales y '
+                   'las necesidades del territorio.',
+        'm5-c4-4': 'Competencias compartidas y fragmentadas no permiten delimitar operativamente las '
+                   'intervenciones en el territorio',
+    },
+}
+
 SEVERITY_RANK = {'baja': 0, 'moderada': 1, 'critica': 2}
+COUNT_TYPES = ('causa_directa', 'causa_indirecta', 'efecto_directo', 'efecto_indirecto')
 
 
 def node_type(level: int) -> str:
@@ -83,21 +122,68 @@ def apply_merges(by_id: dict[str, dict]) -> list[str]:
             keep['severidad'] = merged['severidad']
         tree['nodes'].remove(merged)
         tree['edges'] = [e for e in tree['edges'] if fix['merge'] not in (e['source'], e['target'])]
-        # El nodo absorbido ya no existe: renumerar en orden no pisa ningún ID vigente.
-        for old, new in fix['renumber'].items():
-            nodes[old]['id'] = new
-            for e in tree['edges']:
-                for k in ('source', 'target'):
-                    if e[k] == old:
-                        e[k] = new
-                e['id'] = f"{e['source']}__{e['target']}"
+        rename(tree, nodes, fix['renumber'])
         applied.append(f"{fix['tree']}: {fix['merge']} → {fix['keep']} ({fix['reason']})")
     return applied
 
 
+def rename(tree: dict, nodes: dict[str, dict], renumber: dict[str, str]) -> None:
+    # El nodo quitado ya no existe: renumerar en orden no pisa ningún ID vigente.
+    for old, new in renumber.items():
+        nodes[old]['id'] = new
+        for e in tree['edges']:
+            for k in ('source', 'target'):
+                if e[k] == old:
+                    e[k] = new
+            e['id'] = f"{e['source']}__{e['target']}"
+
+
+def apply_removals(by_id: dict[str, dict]) -> list[str]:
+    applied: list[str] = []
+    for fix in REMOVE:
+        tree = by_id.get(fix['tree'])
+        if tree is None:
+            continue
+        nodes = {n['id']: n for n in tree['nodes']}
+        node = nodes.get(fix['node'])
+        if node is None or not node['description'].startswith(fix['text']):
+            continue  # ya aplicada
+        tree['nodes'].remove(node)
+        tree['edges'] = [e for e in tree['edges'] if fix['node'] not in (e['source'], e['target'])]
+        rename(tree, nodes, fix['renumber'])
+        applied.append(f"{fix['tree']}: {fix['node']} eliminado ({fix['reason']})")
+    return applied
+
+
+def apply_rewords(by_id: dict[str, dict]) -> list[str]:
+    applied: list[str] = []
+    for tree_id, texts in REWORD.items():
+        tree = by_id.get(tree_id)
+        if tree is None:
+            continue
+        nodes = {n['id']: n for n in tree['nodes']}
+        for node_id, text in texts.items():
+            node = nodes.get(node_id)
+            if node is None or node['description'] == text:
+                continue
+            node.update(description=text, label=make_label(text))
+            applied.append(f'{tree_id}: {node_id} (redacción actualizada)')
+    return applied
+
+
+def refresh_counts(tree: dict) -> None:
+    """Mantiene los conteos de `descripcionGeneral` en línea con los nodos tras las correcciones."""
+    c = {t: sum(1 for n in tree['nodes'] if n['type'] == t) for t in COUNT_TYPES}
+    tree['descripcionGeneral'] = re.sub(
+        r'Identifica \d+ causas directas, \d+ causas indirectas, \d+ efectos directos y \d+ efectos indirectos',
+        f"Identifica {c['causa_directa']} causas directas, {c['causa_indirecta']} causas indirectas, "
+        f"{c['efecto_directo']} efectos directos y {c['efecto_indirecto']} efectos indirectos",
+        tree['descripcionGeneral'])
+
+
 def apply(trees: list[dict]) -> list[str]:
     by_id = {t['id']: t for t in trees}
-    applied = apply_merges(by_id)
+    applied = apply_merges(by_id) + apply_removals(by_id) + apply_rewords(by_id)
     for fix in RELOCATE:
         tree = by_id.get(fix['tree'])
         if tree is None:
@@ -122,6 +208,8 @@ def apply(trees: list[dict]) -> list[str]:
         kept += [edge(p, new_id, level) for p in fix['parents']]
         tree['edges'] = kept
         applied.append(f"{fix['tree']}: {fix['node']} → {new_id} ({fix['reason']})")
+    for tree in trees:
+        refresh_counts(tree)
     return applied
 
 

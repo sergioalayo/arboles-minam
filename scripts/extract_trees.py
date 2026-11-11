@@ -67,8 +67,12 @@ MESAS: dict[str, dict[str, str]] = {
                       'los beneficios a la población'},
     '5': {'tema': 'Programas, proyectos especiales y GICA', 'organo': TRANSVERSAL, 'mesa': '5',
           'eje': 'Gestión integrada de programas, proyectos e intervenciones',
-          'problema': 'Limitada capacidad de las unidades ejecutoras y programas del MINAM para ejecutar sus '
-                      'intervenciones'},
+          'problema': 'Limitada capacidad de los Programas y Proyectos del MINAM para ejecutar sus '
+                      'intervenciones*',
+          'nota': '* Alcance del término «Programas y Proyectos»: intervenciones que realiza el Programa '
+                  'Nacional de Conservación de Bosques para la Mitigación del Cambio Climático – PNCBMCC, el '
+                  'Proyecto Especial Papa León XIV y la Unidad Ejecutora 003 Gestión Integral de la Calidad '
+                  'Ambiental – GICA.'},
     '6': {'tema': 'Modernización de TI', 'organo': 'SG', 'mesa': '6',
           'eje': 'Modernización de tecnologías de información',
           'problema': 'Los usuarios reciben un servicio de información para la gestión ambiental fragmentado, '
@@ -562,6 +566,7 @@ def build_tree(key: str, src: Path, raw: list[RawNode], central: RawNode, level:
             f'{counts["causa_indirecta"]} causas indirectas, {counts["efecto_directo"]} efectos directos y '
             f'{counts["efecto_indirecto"]} efectos indirectos.'),
         'archivoOrigen': unicodedata.normalize('NFC', src.name),
+        **({'notaProblemaCentral': meta['nota']} if 'nota' in meta else {}),
         'problemaCentralId': ids[central.key],
         'nodes': out_nodes,
         'edges': edges,

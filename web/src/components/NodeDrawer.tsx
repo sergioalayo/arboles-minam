@@ -101,6 +101,9 @@ export function NodeDrawer() {
               {KIND_LABEL[kindOf(node.level)]}
             </p>
             <h2 className="mt-1 whitespace-pre-line pr-8 text-lg font-semibold leading-snug text-slate-900">{node.description}</h2>
+            {node.level === 0 && index.tree.notaProblemaCentral && (
+              <p className="mt-2 text-xs leading-relaxed text-slate-500">{index.tree.notaProblemaCentral}</p>
+            )}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{node.ejeTematico}</span>
             </div>
